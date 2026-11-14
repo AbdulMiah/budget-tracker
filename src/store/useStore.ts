@@ -61,6 +61,8 @@ type State = {
   /** Flips hidden amounts and vibrates so the change is felt as well as seen. */
   toggleAmountsHidden: () => void;
   load: () => Promise<void>;
+  /** Forgets fetched accounts and transactions, e.g. on sign-out. Settings and edits are kept. */
+  clearBankData: () => void;
 };
 
 function applyOverrides(raw: Transaction[], byTxn: Overrides, byMerchant: Overrides): Transaction[] {
@@ -156,6 +158,7 @@ export const useStore = create<State>()(
           set({ loading: false, error: e instanceof Error ? e.message : 'Could not load transactions' });
         }
       },
+      clearBankData: () => set({ accounts: [], rawTransactions: [], transactions: [], error: null }),
     }),
     {
       name: 'budget-settings',

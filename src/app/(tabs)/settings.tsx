@@ -18,7 +18,9 @@ import { formatHijri } from "../../lib/hijri";
 import { useMoney } from "../../lib/useMoney";
 import { useZakat } from "../../lib/useZakat";
 import { BankId } from "../../lib/types";
+import { supabase } from "../../lib/supabase";
 import { provider, usingDemoData } from "../../providers";
+import { useAuth } from "../../store/useAuth";
 import { useStore } from "../../store/useStore";
 
 const BANKS: BankId[] = ["barclays", "lloyds", "wise"];
@@ -35,8 +37,15 @@ export default function SettingsScreen() {
     categoryBudgets,
     load,
   } = useStore();
+  const email = useAuth((s) => s.session?.user.email);
   const categoryCount = Object.keys(categoryBudgets).length;
   const zakat = useZakat();
+
+  const signOut = () =>
+    Alert.alert('Sign out?', 'Your budget settings stay on this phone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => supabase?.auth.signOut() },
+    ]);
 
   const connect = async (bank: BankId) => {
     try {
@@ -151,8 +160,8 @@ export default function SettingsScreen() {
         >
           {usingDemoData && (
             <Text style={{ color: t.muted, fontSize: 13, marginBottom: 12 }}>
-              Showing demo data. Set EXPO_PUBLIC_API_URL to your backend to
-              connect real accounts.
+              Showing demo data. Set EXPO_PUBLIC_SUPABASE_URL and
+              EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY to connect real accounts.
             </Text>
           )}
           {BANKS.map((bank) => {
@@ -193,6 +202,20 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+
+        {supabase && (
+          <>
+            <Text style={[styles.section, { color: t.muted }]}>ACCOUNT</Text>
+            <View style={[styles.card, styles.toggleRow, { backgroundColor: t.card, borderColor: t.border }]}>
+              <Text style={{ color: t.text, fontSize: 15, flex: 1, marginRight: 12 }} numberOfLines={1}>
+                {email ?? 'Signed in'}
+              </Text>
+              <Pressable onPress={signOut} hitSlop={8} accessibilityRole="button">
+                <Text style={{ color: t.spend, fontWeight: '600' }}>Sign out</Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

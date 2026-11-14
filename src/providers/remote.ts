@@ -9,10 +9,15 @@ import { BankData, BankProvider } from './types';
  *   GET  {API}/accounts      -> Account[]
  *   GET  {API}/transactions  -> Transaction[] (category optional)
  *   GET  {API}/connect/:bank -> { url } consent page to open in the browser
+ * Each request carries the signed-in user's access token.
  */
-export function createRemoteProvider(baseUrl: string): BankProvider {
+export function createRemoteProvider(baseUrl: string, accessToken: () => Promise<string | null>): BankProvider {
   const get = async <T>(path: string): Promise<T> => {
-    const res = await fetch(`${baseUrl}${path}`);
+    const token = await accessToken();
+    const res = await fetch(`${baseUrl}${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.status === 401) throw new Error('Your session has expired. Sign in again.');
     if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
     return res.json();
   };

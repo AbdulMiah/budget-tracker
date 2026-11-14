@@ -9,7 +9,7 @@ npm install
 npx expo start
 ```
 
-Scan the QR code with Expo Go, or press `i` / `a` for a simulator. With no backend configured the app runs on built-in demo data.
+Scan the QR code with Expo Go, or press `i` / `a` for a simulator. With no backend configured the app runs on built-in demo data and skips sign-in.
 
 ## Screens
 
@@ -38,18 +38,44 @@ A mobile app cannot talk to Barclays or Lloyds directly. UK banks only expose da
 
 Shapes are in `src/lib/types.ts`. Amounts are signed pence; dates are `yyyy-MM-dd`. Each account has a `type` of `current` or `credit` (defaults to `current` if missing); a credit card's balance is negative when money is owed.
 
-Point the app at it with a `.env` file:
+Point the app at your Supabase project with a `.env` file (both values are on the project's API settings page and are safe to ship in the app):
 
 ```
-EXPO_PUBLIC_API_URL=https://your-backend.example.com
+EXPO_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-Suggested sources for the backend:
+The app then asks you to sign in (email and password) and calls the `api` edge function at `<project URL>/functions/v1/api`. Set `EXPO_PUBLIC_API_URL` only to use a different backend.
 
-- **Barclays and Lloyds**: an Open Banking aggregator such as TrueLayer or GoCardless Bank Account Data. Consent has to be renewed every 90 days.
-- **Wise**: either the same aggregator or a Wise personal API token.
+Planned backend:
 
-The backend must add its own authentication before it holds real data; `src/providers/remote.ts` currently sends no credentials.
+- **Hosting**: Supabase (edge functions, Postgres and auth). The free plan is enough for personal use; it pauses after a week without requests, which a daily sync job avoids. Pro is $25/month if needed.
+- **Bank data**: [Enable Banking](https://enablebanking.com) in its free restricted mode, which reads only accounts you have linked yourself in its control panel. No contract is needed, and banks allow roughly 4 background refreshes a day. Consent has to be renewed every 90 days. Check that Barclays, Lloyds and Wise are on its bank list before relying on it.
+- **Wise fallback**: if Enable Banking doesn't cover Wise, import a CSV statement. A Wise personal API token can't read balance statements for UK accounts.
+
+Ruled out: GoCardless Bank Account Data closed to new signups in July 2025, and TrueLayer production access needs a registered business and a sales contract.
+
+Every request carries the signed-in Supabase user's access token (`Authorization: Bearer ...`).
+
+## Backend (`supabase/`)
+
+One edge function, `api`, serves the endpoints above plus `GET /callback` (where Enable Banking returns after consent) and `POST /sync` (the scheduled refresh). Data is stored in Postgres and read from there; the app never talks to Enable Banking.
+
+```
+supabase/migrations/          tables (bank_sessions, pending_auths, accounts, transactions) and the sync schedule
+supabase/functions/api/       index.ts (routes), enableBanking.ts (API client), sync.ts, mapping.ts
+```
+
+Setup, once:
+
+1. Create a Supabase project and install the [Supabase CLI](https://supabase.com/docs/guides/local-development). Run `supabase link`, then `supabase db push`.
+2. In the [Enable Banking control panel](https://enablebanking.com), register a production application with redirect URL `https://<project-ref>.supabase.co/functions/v1/api/callback`, keep the private key it gives you, and link your own accounts to activate restricted mode.
+3. Copy `supabase/functions/.env.example` to `supabase/functions/.env`, fill it in, then `supabase secrets set --env-file supabase/functions/.env`.
+4. `supabase functions deploy api`.
+5. In the SQL editor, add the two Vault secrets the sync schedule reads (see `supabase/migrations/20261114120100_sync_schedule.sql`).
+6. Add the `.env` above, start the app and create your account from the sign-in screen. Then, in Authentication → Sign In / Providers, turn off "Allow new users to sign up" so nobody else can.
+
+Typecheck the function with `npx deno@2 check supabase/functions/api/index.ts`.
 
 ## Layout
 

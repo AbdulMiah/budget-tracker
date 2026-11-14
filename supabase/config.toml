@@ -1,0 +1,6 @@
+project_id = "budget-app"
+
+[functions.api]
+# The bank's consent redirect (/callback) and the cron job (/sync) arrive without a
+# user JWT, so the function checks auth itself.
+verify_jwt = false
