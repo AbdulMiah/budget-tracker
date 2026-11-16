@@ -34,7 +34,7 @@ A mobile app cannot talk to Barclays or Lloyds directly. UK banks only expose da
 | --- | --- |
 | `GET /accounts` | `Account[]` |
 | `GET /transactions` | `Transaction[]` (`category` optional; the app fills it in) |
-| `GET /connect/:bank` | `{ "url": "..." }`, the consent page to open |
+| `GET /connect/:bank?redirect=<app url>` | `{ "url": "..." }`, the consent page to open. Afterwards the browser is sent to `redirect` with `?bank=…&connected=1` or `&error=…` |
 
 Shapes are in `src/lib/types.ts`. Amounts are signed pence; dates are `yyyy-MM-dd`. Each account has a `type` of `current` or `credit` (defaults to `current` if missing); a credit card's balance is negative when money is owed.
 
@@ -72,7 +72,7 @@ Setup, once:
 2. In the [Enable Banking control panel](https://enablebanking.com), register a production application with redirect URL `https://<project-ref>.supabase.co/functions/v1/api/callback`, keep the private key it gives you, and link your own accounts to activate restricted mode.
 3. Copy `supabase/functions/.env.example` to `supabase/functions/.env`, fill it in, then `supabase secrets set --env-file supabase/functions/.env`.
 4. `supabase functions deploy api`.
-5. In the SQL editor, add the two Vault secrets the sync schedule reads (see `supabase/migrations/20261114120100_sync_schedule.sql`).
+5. In the SQL editor, add the two Vault secrets the sync schedule reads (see `supabase/migrations/20261114160509_sync_schedule.sql`).
 6. Add the `.env` above, start the app and create your account from the sign-in screen. Then, in Authentication → Sign In / Providers, turn off "Allow new users to sign up" so nobody else can.
 
 Typecheck the function with `npx deno@2 check supabase/functions/api/index.ts`.

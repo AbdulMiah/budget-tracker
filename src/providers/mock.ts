@@ -119,5 +119,6 @@ export const mockProvider: BankProvider = {
   },
   async connect() {
     // Demo data is already "connected".
+    return false;
   },
 };

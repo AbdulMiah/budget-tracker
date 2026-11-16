@@ -49,8 +49,8 @@ export default function SettingsScreen() {
 
   const connect = async (bank: BankId) => {
     try {
-      await provider.connect(bank);
-      await load();
+      // Only refetch once the bank actually linked; closing the browser changes nothing.
+      if (await provider.connect(bank)) await load();
     } catch (e) {
       Alert.alert(
         "Could not connect",

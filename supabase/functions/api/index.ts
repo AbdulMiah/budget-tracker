@@ -1,7 +1,7 @@
 // The app's backend. Implements the contract in README.md:
 //   GET  /accounts        Account[]
 //   GET  /transactions    Transaction[] (no category; the app fills it in)
-//   GET  /connect/:bank   { url } consent page to open
+//   GET  /connect/:bank   { url } consent page to open (?redirect=<app url> to return to afterwards)
 // plus two routes that arrive without a user JWT:
 //   GET  /callback        Enable Banking redirects here after consent
 //   POST /sync            cron job, authorised by the x-cron-secret header
@@ -15,6 +15,9 @@ const SECRET_KEY =
   JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const CALLBACK_URL = `${SUPABASE_URL}/functions/v1/api/callback`;
 const APP_REDIRECT_URL = Deno.env.get('APP_REDIRECT_URL') ?? 'budgetapp://settings';
+// The app passes its own return address (exp:// in Expo Go, budgetapp:// in a build). Only app schemes are
+// accepted, so the callback can't be used to bounce a browser to an arbitrary website.
+const APP_SCHEMES = ['budgetapp:', 'exp:', 'exps:'];
 const PENDING_AUTH_MAX_AGE_MS = 30 * 60 * 1000;
 const PAGE_SIZE = 1000; // PostgREST's default row cap
 
@@ -37,7 +40,7 @@ Deno.serve(async (req) => {
     if (req.method === 'GET' && path === '/accounts') return json(await listAccounts(userId));
     if (req.method === 'GET' && path === '/transactions') return json(await listTransactions(userId));
     const connect = path.match(/^\/connect\/([a-z]+)$/);
-    if (req.method === 'GET' && connect) return await startConnect(userId, connect[1]);
+    if (req.method === 'GET' && connect) return await startConnect(userId, connect[1], url.searchParams.get('redirect'));
     return json({ error: 'Not found' }, 404);
   } catch (e) {
     console.error(e);
@@ -87,12 +90,27 @@ async function listTransactions(userId: string) {
   }
 }
 
-async function startConnect(userId: string, bank: string) {
+async function startConnect(userId: string, bank: string, redirect: string | null) {
   if (!BANKS.includes(bank as BankId)) return json({ error: `Unknown bank: ${bank}` }, 400);
+  if (redirect && !isAppUrl(redirect)) return json({ error: 'Invalid redirect' }, 400);
   const [pending] = await check<{ state: string }[]>(
-    db.from('pending_auths').insert({ user_id: userId, bank }).select('state'),
+    db.from('pending_auths').insert({ user_id: userId, bank, redirect_url: redirect }).select('state'),
   );
-  return json({ url: await eb.startAuth(bank as BankId, pending.state, CALLBACK_URL) });
+  try {
+    return json({ url: await eb.startAuth(bank as BankId, pending.state, CALLBACK_URL) });
+  } catch (e) {
+    // e.g. the bank isn't on Enable Banking, or the app credentials are wrong. Shown in the app's alert.
+    console.error('startAuth failed:', e);
+    return json({ error: e instanceof Error ? e.message : 'Could not start the bank connection' }, 502);
+  }
+}
+
+function isAppUrl(value: string) {
+  try {
+    return APP_SCHEMES.includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
 }
 
 async function callback(url: URL) {
@@ -100,25 +118,33 @@ async function callback(url: URL) {
   if (!/^[0-9a-f-]{36}$/i.test(state)) return page('This link is not valid.', 400);
 
   // Deleting as we read means each consent link can only be used once.
-  const [pending] = await check<{ user_id: string; bank: BankId; created_at: string }[]>(
-    db.from('pending_auths').delete().eq('state', state).select('user_id, bank, created_at'),
+  const [pending] = await check<{ user_id: string; bank: BankId; created_at: string; redirect_url: string | null }[]>(
+    db.from('pending_auths').delete().eq('state', state).select('user_id, bank, created_at, redirect_url'),
   );
   if (!pending || Date.now() - Date.parse(pending.created_at) > PENDING_AUTH_MAX_AGE_MS) {
     return page('This link has expired. Start again from the app.', 400);
   }
+  const back = (params: Record<string, string>) =>
+    backToApp(pending.redirect_url ?? APP_REDIRECT_URL, { bank: pending.bank, ...params });
 
   const code = url.searchParams.get('code');
-  if (!code) return backToApp({ bank: pending.bank, error: url.searchParams.get('error') ?? 'cancelled' });
+  if (!code) return back({ error: url.searchParams.get('error') ?? 'cancelled' });
 
-  const session = await eb.createSession(code);
-  await saveSession(db, pending.user_id, pending.bank, session);
   try {
-    await syncSession(db, session.session_id);
+    const session = await eb.createSession(code);
+    await saveSession(db, pending.user_id, pending.bank, session);
+    try {
+      await syncSession(db, session.session_id);
+    } catch (e) {
+      // The consent is saved, so the next scheduled sync can still pick the data up.
+      console.error('Initial sync failed:', e);
+    }
   } catch (e) {
-    // The consent is saved, so the next scheduled sync can still pick the data up.
-    console.error('Initial sync failed:', e);
+    // Return to the app either way, so the in-app browser closes instead of showing an error page.
+    console.error('Saving the consent failed:', e);
+    return back({ error: 'server_error' });
   }
-  return backToApp({ bank: pending.bank, connected: '1' });
+  return back({ connected: '1' });
 }
 
 async function cronSync(req: Request) {
@@ -127,14 +153,13 @@ async function cronSync(req: Request) {
   return json(await syncAll(db));
 }
 
-function backToApp(params: Record<string, string>) {
-  const target = `${APP_REDIRECT_URL}?${new URLSearchParams(params)}`;
-  return new Response(null, { status: 302, headers: { Location: target } });
+function backToApp(redirect: string, params: Record<string, string>) {
+  const target = new URL(redirect);
+  for (const [key, value] of Object.entries(params)) target.searchParams.set(key, value);
+  return new Response(null, { status: 302, headers: { Location: target.toString() } });
 }
 
+// Plain text: Supabase serves edge function HTML as text/plain on the default domain, so markup would show raw.
 function page(message: string, status: number) {
-  return new Response(`<!doctype html><meta name="viewport" content="width=device-width"><p>${message}</p>`, {
-    status,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  });
+  return new Response(message, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 }
