@@ -38,14 +38,18 @@ export const CATEGORIES = [
   'Entertainment',
   'Travel',
   'Health',
+  'Zakat',
   'Transfer',
   'Other',
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 
-/** Categories money can be budgeted for (everything except income and moving money between accounts). */
-export const SPENDING_CATEGORIES = CATEGORIES.filter((c) => c !== 'Income' && c !== 'Transfer');
+/**
+ * Categories money can be budgeted for: everything except income, moving money between accounts,
+ * and zakat (a yearly obligation tracked on its own tab, not a monthly spend).
+ */
+export const SPENDING_CATEGORIES = CATEGORIES.filter((c) => c !== 'Income' && c !== 'Transfer' && c !== 'Zakat');
 
 /** Which chart Analytics shows. */
 export type ChartType = 'income-spending' | 'spending-trend' | 'categories';

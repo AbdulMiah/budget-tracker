@@ -12,11 +12,13 @@ export const CATEGORY_COLORS: Record<Category, string> = {
   Entertainment: '#E0B83A',
   Travel: '#2AB3B3',
   Health: '#E0586E',
+  Zakat: '#14806F',
   Transfer: '#8A94A6',
   Other: '#8A94A6',
 };
 
 const RULES: [RegExp, Category][] = [
+  [/\bzaka[th]\b|zakat foundation/i, 'Zakat'],
   [/salary|payroll|wages/i, 'Income'],
   [/landlord|rent\b|letting/i, 'Rent'],
   [/council tax|octopus|british gas|thames water|bt broadband|vodafone|o2|ee\b|virgin media/i, 'Bills'],

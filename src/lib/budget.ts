@@ -11,7 +11,7 @@ export type BudgetStatus = {
   start: Date;
   end: Date;
   limit: number;
-  /** Spent so far this budget month (transfers between own accounts excluded). */
+  /** Spent so far this budget month (transfers between own accounts and zakat excluded). */
   spent: number;
   /** Recurring payments still due between today and the end of the month. */
   committed: number;
@@ -33,7 +33,7 @@ export function upcomingPayments(recurring: RecurringPayment[], today: Date, end
   const from = startOfDay(today);
   const out: Upcoming[] = [];
   for (const payment of recurring) {
-    if (payment.direction !== 'out') continue;
+    if (payment.direction !== 'out' || payment.category === 'Zakat') continue;
     for (let date = payment.nextDate; !isAfter(date, end); date = advance(date, payment.frequency)) {
       if (date >= from) out.push({ payment, date });
     }
@@ -58,7 +58,7 @@ export function budgetStatus(
   const spentBy = new Map<Category, number>();
   let spent = 0;
   for (const t of txns) {
-    if (t.amount >= 0 || t.category === 'Transfer' || t.date < from || t.date > to) continue;
+    if (t.amount >= 0 || t.category === 'Transfer' || t.category === 'Zakat' || t.date < from || t.date > to) continue;
     spent -= t.amount;
     spentBy.set(t.category, (spentBy.get(t.category) ?? 0) - t.amount);
   }

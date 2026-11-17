@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SectionTitle } from '../components/InfoTip';
 import { MoneyInput } from '../components/MoneyInput';
 import { useTheme } from '../components/theme';
 import { CATEGORY_COLORS } from '../lib/categories';
@@ -22,12 +23,11 @@ export default function SpendingLimitScreen() {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: t.bg }]} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-        <Text style={[styles.section, { color: t.muted }]}>MONTHLY LIMIT</Text>
+        <SectionTitle
+          title="Monthly limit"
+          info="The most you want to spend each budget month, including bills and subscriptions. Leave it empty to turn budgeting off."
+        />
         <View style={[styles.card, { backgroundColor: t.card, borderColor: t.border }]}>
-          <Text style={{ color: t.muted, fontSize: 13, marginBottom: 10 }}>
-            The most you want to spend each budget month, including bills and subscriptions. Leave it empty to turn
-            budgeting off.
-          </Text>
           <MoneyInput value={budgetLimit} onChange={setBudgetLimit} placeholder="e.g. 2000" accessibilityLabel="Monthly spending limit" />
         </View>
 
@@ -54,11 +54,11 @@ export default function SpendingLimitScreen() {
           </>
         )}
 
-        <Text style={[styles.section, { color: t.muted }]}>SPLIT BY CATEGORY</Text>
+        <SectionTitle
+          title="Split by category"
+          info="Optional. Set aside part of your limit for the categories you want to keep an eye on."
+        />
         <View style={[styles.card, { backgroundColor: t.card, borderColor: t.border }]}>
-          <Text style={{ color: t.muted, fontSize: 13, marginBottom: 6 }}>
-            Optional. Set aside part of your limit for the categories you want to keep an eye on.
-          </Text>
           {SPENDING_CATEGORIES.map((c) => (
             <View key={c} style={[styles.allocation, { borderTopColor: t.border }]}>
               <View style={[styles.dot, { backgroundColor: CATEGORY_COLORS[c] }]} />

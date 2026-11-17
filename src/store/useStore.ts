@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { Account, Category, ChartType, Transaction } from '../lib/types';
+import { ZakatPayment } from '../lib/zakat';
 import { provider } from '../providers';
 
 /** A user's edit to how a transaction is shown. `icon: null` means the default initial. */
@@ -34,6 +35,15 @@ type State = {
   budgetLimit: number | null;
   /** Parts of the limit set aside for particular categories, in pence. Persisted. */
   categoryBudgets: Partial<Record<Category, number>>;
+  /** First day of the first zakat year (yyyy-MM-dd), or null before zakat tracking starts. Persisted. */
+  zakatStart: string | null;
+  /** Gold and silver prices in pence per gram, used to work out nisab. Persisted. */
+  goldPrice: number | null;
+  silverPrice: number | null;
+  /** Zakat paid outside the linked accounts. Persisted. */
+  zakatPayments: ZakatPayment[];
+  /** The user's own wealth figure for a completed zakat year, keyed by its Hijri year. Persisted. */
+  zakatWealthOverrides: Record<string, number>;
   setBudgetStartDay: (day: number) => void;
   setOverride: (txnId: string, override: Override, applyToMerchant: boolean) => void;
   setTiltToHide: (on: boolean) => void;
@@ -41,6 +51,13 @@ type State = {
   setBudgetLimit: (pence: number | null) => void;
   /** Pass null to remove a category's allocation. */
   setCategoryBudget: (category: Category, pence: number | null) => void;
+  setZakatStart: (date: string | null) => void;
+  setGoldPrice: (pence: number | null) => void;
+  setSilverPrice: (pence: number | null) => void;
+  addZakatPayment: (payment: Omit<ZakatPayment, 'id'>) => void;
+  removeZakatPayment: (id: string) => void;
+  /** Pass null to go back to the figure rebuilt from transactions. */
+  setZakatWealthOverride: (key: string, pence: number | null) => void;
   /** Flips hidden amounts and vibrates so the change is felt as well as seen. */
   toggleAmountsHidden: () => void;
   load: () => Promise<void>;
@@ -69,6 +86,11 @@ export const useStore = create<State>()(
       analyticsChart: 'income-spending',
       budgetLimit: null,
       categoryBudgets: {},
+      zakatStart: null,
+      goldPrice: null,
+      silverPrice: null,
+      zakatPayments: [],
+      zakatWealthOverrides: {},
       setBudgetStartDay: (day) => set({ budgetStartDay: day }),
       setTiltToHide: (on) => set({ tiltToHide: on }),
       setAnalyticsChart: (chart) => set({ analyticsChart: chart }),
@@ -78,6 +100,20 @@ export const useStore = create<State>()(
         if (pence === null) delete next[category];
         else next[category] = pence;
         set({ categoryBudgets: next });
+      },
+      setZakatStart: (date) => set({ zakatStart: date }),
+      setGoldPrice: (pence) => set({ goldPrice: pence }),
+      setSilverPrice: (pence) => set({ silverPrice: pence }),
+      addZakatPayment: (payment) => {
+        const id = `zakat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        set({ zakatPayments: [...get().zakatPayments, { ...payment, id }] });
+      },
+      removeZakatPayment: (id) => set({ zakatPayments: get().zakatPayments.filter((p) => p.id !== id) }),
+      setZakatWealthOverride: (key, pence) => {
+        const next = { ...get().zakatWealthOverrides };
+        if (pence === null) delete next[key];
+        else next[key] = pence;
+        set({ zakatWealthOverrides: next });
       },
       toggleAmountsHidden: () => {
         const hidden = !get().amountsHidden;
@@ -133,6 +169,11 @@ export const useStore = create<State>()(
         analyticsChart: s.analyticsChart,
         budgetLimit: s.budgetLimit,
         categoryBudgets: s.categoryBudgets,
+        zakatStart: s.zakatStart,
+        goldPrice: s.goldPrice,
+        silverPrice: s.silverPrice,
+        zakatPayments: s.zakatPayments,
+        zakatWealthOverrides: s.zakatWealthOverrides,
       }),
       // Saved edits can arrive after the first fetch, so re-apply them on hydration.
       merge: (persisted, current) => {
