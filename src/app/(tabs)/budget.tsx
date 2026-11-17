@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DonutRing } from '../../components/DonutRing';
 import { EyeButton } from '../../components/EyeButton';
+import { InfoTip } from '../../components/InfoTip';
 import { RecurringRow } from '../../components/RecurringRow';
 import { useTheme } from '../../components/theme';
 import { CategoryBudget } from '../../lib/budget';
@@ -85,7 +86,13 @@ export default function BudgetScreen() {
                 <Ionicons name="today-outline" size={22} color={t.primary} />
               </View>
               <View style={{ flex: 1, marginHorizontal: 12 }}>
-                <Text style={{ color: t.text, fontSize: 16, fontWeight: '700' }}>Daily allowance</Text>
+                <View style={styles.tipRow}>
+                  <Text style={{ color: t.text, fontSize: 16, fontWeight: '700' }}>Daily allowance</Text>
+                  <InfoTip
+                    label="Daily allowance"
+                    text={`${formatMoney(status.limit)} budget − ${formatMoney(status.spent)} spent − ${formatMoney(status.committed)} committed, shared across ${status.daysLeft} ${status.daysLeft === 1 ? 'day' : 'days'} left.`}
+                  />
+                </View>
                 <Text style={{ color: t.muted, fontSize: 13, marginTop: 2 }}>
                   {status.remaining < 0
                     ? 'Spending and commitments are over your limit'
@@ -97,10 +104,6 @@ export default function BudgetScreen() {
                 <Text style={{ fontSize: 13, fontWeight: '600', color: t.muted }}>/day</Text>
               </Text>
             </View>
-            <Text style={[styles.formula, { color: t.muted }]}>
-              {formatMoney(status.limit)} budget − {formatMoney(status.spent)} spent − {formatMoney(status.committed)} committed,
-              shared across {status.daysLeft} {status.daysLeft === 1 ? 'day' : 'days'} left.
-            </Text>
 
             {status.categories.length > 0 && (
               <>
@@ -195,10 +198,10 @@ const styles = StyleSheet.create({
   key: { flex: 1, alignItems: 'center' },
   keyRow: { flexDirection: 'row', alignItems: 'center' },
   swatch: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
-  allowance: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  allowance: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  tipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   allowanceIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   allowanceValue: { fontSize: 20, fontWeight: '800' },
-  formula: { fontSize: 12, marginBottom: 16, paddingHorizontal: 4 },
   section: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, marginTop: 4, marginBottom: 8 },
   categoryRow: { paddingVertical: 10 },
   categoryTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },

@@ -90,6 +90,9 @@ function generate(today: Date): Transaction[] {
     push('lloyds-current', dayOf(26), 1450, 'Transfer from Barclays', 'Transfer from own account');
     push('barclays-current', dayOf(27), -250, 'Transfer to Wise', 'Transfer to own account');
     push('wise-gbp', dayOf(27), 250, 'Transfer from Barclays', 'Transfer from own account');
+    // A one-off zakat payment, so the Zakat tab has some history to show.
+    if (back === 8) push('barclays-current', dayOf(19), -250, 'National Zakat Foundation');
+
     // Credit card repayments.
     push('barclays-current', dayOf(18), -170, 'Transfer to Barclaycard', 'Transfer to own account');
     push('barclaycard', dayOf(18), 170, 'Payment received', 'Transfer from own account');

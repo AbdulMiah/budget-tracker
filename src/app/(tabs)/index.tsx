@@ -23,6 +23,7 @@ import { useTheme } from '../../components/theme';
 import { TransactionEditModal } from '../../components/TransactionEditModal';
 import { TotalsChart } from '../../components/TotalsChart';
 import { TransactionRow } from '../../components/TransactionRow';
+import { ZakatSummaryCard } from '../../components/ZakatSummaryCard';
 import { netWorthSeries } from '../../lib/analytics';
 import { periodEnd, periodStart } from '../../lib/budgetPeriod';
 import { useBudgetStatus } from '../../lib/useBudget';
@@ -126,6 +127,9 @@ export default function DashboardScreen() {
           </View>
           <Ionicons name="chevron-forward" size={22} color={t.muted} />
         </Pressable>
+
+        <SectionHeader title="Zakat" onSeeAll={() => router.navigate('/zakat')} />
+        <ZakatSummaryCard />
 
         <SectionHeader title="This budget month" />
         <View style={styles.columns}>

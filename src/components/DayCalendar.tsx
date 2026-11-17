@@ -8,8 +8,11 @@ import { useTheme } from './theme';
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 type Props = {
-  /** 'week': tapping a day picks its Monday-Sunday week. 'range': tap a first day, then a last day. */
-  mode: 'week' | 'range';
+  /**
+   * 'week': tapping a day picks its Monday-Sunday week. 'range': tap a first day, then a last day.
+   * 'day': tapping picks just that day (start and end are the same).
+   */
+  mode: 'week' | 'range' | 'day';
   value: DateRange;
   /** Latest selectable day. */
   maxDate: Date;
@@ -36,6 +39,8 @@ export function DayCalendar({ mode, value, maxDate, onChange }: Props) {
     if (mode === 'week') {
       const start = startOfWeek(day, { weekStartsOn: 1 });
       onChange({ start, end: addDays(start, 6) });
+    } else if (mode === 'day') {
+      onChange({ start: day, end: day });
     } else if (!pending) {
       setPending(day);
       onChange({ start: day, end: day });
@@ -47,7 +52,11 @@ export function DayCalendar({ mode, value, maxDate, onChange }: Props) {
   };
 
   const hint =
-    mode === 'week' ? 'Tap any day to select its week' : pending ? 'Tap the last day, or apply for just this day' : 'Tap the first day';
+    mode === 'day'
+      ? 'Tap a day'
+      : mode === 'week'
+        ? 'Tap any day to select its week'
+        : pending ? 'Tap the last day, or apply for just this day' : 'Tap the first day';
 
   return (
     <View>

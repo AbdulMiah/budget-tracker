@@ -35,6 +35,8 @@ export default function RootLayout() {
         <Stack.Screen name="spending-limit" options={{ ...pushed, title: 'Spending limit' }} />
         <Stack.Screen name="recurring/index" options={{ ...pushed, title: 'Recurring payments' }} />
         <Stack.Screen name="recurring/[key]" options={{ ...pushed, title: '' }} />
+        <Stack.Screen name="zakat-settings" options={{ ...pushed, title: 'Zakat settings' }} />
+        <Stack.Screen name="zakat/[year]" options={{ ...pushed, title: '' }} />
       </Stack>
     </>
   );
