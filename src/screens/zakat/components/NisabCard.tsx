@@ -20,15 +20,13 @@ export function NisabCard({ netWorth, nisab, aboveNisab }: Props) {
       style={[styles.card, { backgroundColor: t.card, borderColor: t.border }]}
     >
       <View style={styles.top}>
-        <Text style={{ color: t.text, fontSize: 16, fontWeight: "700" }}>
-          Nisab
-        </Text>
+        <Text style={[styles.title, { color: t.text }]}>Nisab</Text>
         <Pressable
           onPress={() => router.push("/zakat-settings")}
           hitSlop={10}
           accessibilityRole="button"
         >
-          <Text style={{ color: t.primary, fontSize: 14, fontWeight: "600" }}>
+          <Text style={[styles.link, { color: t.primary }]}>
             {known ? "Prices" : "Add prices"}
           </Text>
         </Pressable>
@@ -56,7 +54,7 @@ export function NisabCard({ netWorth, nisab, aboveNisab }: Props) {
           size={20}
           color={color}
         />
-        <Text style={{ color: t.text, fontSize: 13, flex: 1, marginLeft: 8 }}>
+        <Text style={[styles.noticeText, { color: t.text }]}>
           {!known
             ? "Add today's gold and silver prices to check whether your wealth reaches nisab."
             : aboveNisab
@@ -82,16 +80,10 @@ function Row({
   const t = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={{ color: bold ? t.text : t.muted, fontSize: 14, flex: 1 }}>
+      <Text style={[styles.rowLabel, { color: bold ? t.text : t.muted }]}>
         {label}
       </Text>
-      <Text
-        style={{
-          color: t.text,
-          fontSize: 14,
-          fontWeight: bold ? "700" : "600",
-        }}
-      >
+      <Text style={[styles.rowValue, bold && styles.bold, { color: t.text }]}>
         {value}
       </Text>
       {met !== undefined && (
@@ -99,7 +91,7 @@ function Row({
           name={met ? "checkmark" : "close"}
           size={16}
           color={met ? t.income : t.muted}
-          style={{ marginLeft: 6 }}
+          style={styles.met}
           accessibilityLabel={met ? "Reached" : "Not reached"}
         />
       )}
@@ -115,7 +107,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
+  title: { fontSize: 16, fontWeight: "700" },
+  link: { fontSize: 14, fontWeight: "600" },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 5 },
+  rowLabel: { flex: 1, fontSize: 14 },
+  rowValue: { fontSize: 14, fontWeight: "600" },
+  bold: { fontWeight: "700" },
+  met: { marginLeft: 6 },
   notice: {
     flexDirection: "row",
     alignItems: "center",
@@ -123,4 +121,5 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 8,
   },
+  noticeText: { flex: 1, fontSize: 13, marginLeft: 8 },
 });

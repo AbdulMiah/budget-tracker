@@ -13,8 +13,8 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { DayCalendar } from "@/components/DayCalendar";
 import { InfoTip } from "@/components/InfoTip";
 import { parsePounds } from "@/components/MoneyInput";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
 
 type Props = { visible: boolean; onClose: () => void };
 
@@ -29,7 +29,7 @@ export function AddZakatPaymentSheet({ visible, onClose }: Props) {
 
 function Form({ onClose }: { onClose: () => void }) {
   const t = useTheme();
-  const addZakatPayment = useStore((s) => s.addZakatPayment);
+  const { update } = useSettings();
   const [today] = useState(() => startOfDay(new Date()));
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -39,11 +39,13 @@ function Form({ onClose }: { onClose: () => void }) {
 
   const save = () => {
     if (!valid) return;
-    addZakatPayment({
+    const payment = {
+      id: `zakat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
       date: format(date, "yyyy-MM-dd"),
       amount: pence,
       note: note.trim() || undefined,
-    });
+    };
+    update((s) => ({ zakatPayments: [...s.zakatPayments, payment] }));
     onClose();
   };
 
@@ -51,12 +53,12 @@ function Form({ onClose }: { onClose: () => void }) {
     <>
       <View style={styles.header}>
         <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
-          <Text style={{ color: t.primary, fontSize: 16 }}>Cancel</Text>
+          <Text style={[styles.headerButton, { color: t.primary }]}>
+            Cancel
+          </Text>
         </Pressable>
         <View style={styles.title}>
-          <Text style={{ color: t.text, fontSize: 17, fontWeight: "700" }}>
-            Add payment
-          </Text>
+          <Text style={[styles.titleText, { color: t.text }]}>Add payment</Text>
           <InfoTip
             label="Adding payments"
             text="For zakat paid in cash or from an account that isn't linked. Bank transactions labelled Zakat are counted automatically, so don't add those here too."
@@ -70,12 +72,12 @@ function Form({ onClose }: { onClose: () => void }) {
           accessibilityState={{ disabled: !valid }}
         >
           <Text
-            style={{
-              color: t.primary,
-              fontSize: 16,
-              fontWeight: "700",
-              opacity: valid ? 1 : 0.35,
-            }}
+            style={[
+              styles.headerButton,
+              styles.save,
+              !valid && styles.disabled,
+              { color: t.primary },
+            ]}
           >
             Save
           </Text>
@@ -91,7 +93,7 @@ function Form({ onClose }: { onClose: () => void }) {
             { backgroundColor: t.card, borderColor: t.border },
           ]}
         >
-          <Text style={{ color: t.muted, fontSize: 22 }}>£</Text>
+          <Text style={[styles.symbol, { color: t.muted }]}>£</Text>
           <TextInput
             value={amount}
             onChangeText={setAmount}
@@ -143,7 +145,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  headerButton: { fontSize: 16 },
+  save: { fontWeight: "700" },
+  disabled: { opacity: 0.35 },
   title: { flexDirection: "row", alignItems: "center", gap: 6 },
+  titleText: { fontSize: 17, fontWeight: "700" },
+  symbol: { fontSize: 22 },
   content: { paddingHorizontal: 16 },
   field: {
     flexDirection: "row",

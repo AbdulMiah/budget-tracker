@@ -5,8 +5,8 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { BANK_COLORS, CATEGORY_COLORS } from "@/constants";
 import { Account } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
 import { PaymentEntry } from "@/utils/zakat";
 
 type Props = {
@@ -24,7 +24,7 @@ export function ZakatPaymentRow({
 }: Props) {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const removeZakatPayment = useStore((s) => s.removeZakatPayment);
+  const { update } = useSettings();
   const manual = payment.source === "manual";
   const color = manual
     ? CATEGORY_COLORS.Zakat
@@ -40,7 +40,10 @@ export function ZakatPaymentRow({
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => removeZakatPayment(payment.id),
+        onPress: () =>
+          update((s) => ({
+            zakatPayments: s.zakatPayments.filter((p) => p.id !== payment.id),
+          })),
       },
     ]);
 
@@ -50,7 +53,7 @@ export function ZakatPaymentRow({
       disabled={!manual}
       accessibilityRole={manual ? "button" : undefined}
       accessibilityHint={manual ? "Offers to delete this payment" : undefined}
-      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={[styles.icon, { backgroundColor: color + "22" }]}>
         <Ionicons
@@ -59,23 +62,20 @@ export function ZakatPaymentRow({
           color={color}
         />
       </View>
-      <View style={{ flex: 1, marginHorizontal: 12 }}>
-        <Text style={{ color: t.text, fontSize: 15 }} numberOfLines={1}>
+      <View style={styles.middle}>
+        <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
           {title}
         </Text>
-        <Text
-          style={{ color: t.muted, fontSize: 13, marginTop: 2 }}
-          numberOfLines={1}
-        >
+        <Text style={[styles.sub, { color: t.muted }]} numberOfLines={1}>
           {format(parseISO(payment.date), "d MMM yyyy")} · {where}
         </Text>
       </View>
-      <View style={{ alignItems: "flex-end" }}>
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>
+      <View style={styles.right}>
+        <Text style={[styles.amount, { color: t.text }]}>
           {formatMoney(amount)}
         </Text>
         {amount !== payment.amount && (
-          <Text style={{ color: t.muted, fontSize: 12, marginTop: 2 }}>
+          <Text style={[styles.of, { color: t.muted }]}>
             of {formatMoney(payment.amount)}
           </Text>
         )}
@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  pressed: { opacity: 0.6 },
   icon: {
     width: 40,
     height: 40,
@@ -98,4 +99,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  middle: { flex: 1, marginHorizontal: 12 },
+  title: { fontSize: 15 },
+  sub: { fontSize: 13, marginTop: 2 },
+  right: { alignItems: "flex-end" },
+  amount: { fontSize: 15, fontWeight: "600" },
+  of: { fontSize: 12, marginTop: 2 },
 });
