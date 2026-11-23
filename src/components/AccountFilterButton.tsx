@@ -1,12 +1,20 @@
-import { IconButton } from './IconButton';
+import { IconButton } from "./IconButton";
 
 /** Filter icon button; turns solid with a count badge when some accounts are filtered. */
-export function AccountFilterButton({ count, onPress }: { count: number; onPress: () => void }) {
+export function AccountFilterButton({
+  count,
+  onPress,
+}: {
+  count: number;
+  onPress: () => void;
+}) {
   return (
     <IconButton
       icon="options-outline"
       count={count}
-      accessibilityLabel={count ? `Filter accounts, ${count} selected` : 'Filter accounts'}
+      accessibilityLabel={
+        count ? `Filter accounts, ${count} selected` : "Filter accounts"
+      }
       onPress={onPress}
     />
   );

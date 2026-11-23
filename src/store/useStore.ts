@@ -1,10 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import { Account, Category, ChartType, Transaction } from '../lib/types';
-import { ZakatPayment } from '../lib/zakat';
-import { provider } from '../providers';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+
+import { Account, Category, ChartType, Transaction } from "../lib/types";
+import { ZakatPayment } from "../lib/zakat";
+import { provider } from "../providers";
 
 /** A user's edit to how a transaction is shown. `icon: null` means the default initial. */
 export type Override = { category: Category; icon: string | null };
@@ -45,7 +46,11 @@ type State = {
   /** The user's own wealth figure for a completed zakat year, keyed by its Hijri year. Persisted. */
   zakatWealthOverrides: Record<string, number>;
   setBudgetStartDay: (day: number) => void;
-  setOverride: (txnId: string, override: Override, applyToMerchant: boolean) => void;
+  setOverride: (
+    txnId: string,
+    override: Override,
+    applyToMerchant: boolean
+  ) => void;
   setTiltToHide: (on: boolean) => void;
   setAnalyticsChart: (chart: ChartType) => void;
   setBudgetLimit: (pence: number | null) => void;
@@ -54,7 +59,7 @@ type State = {
   setZakatStart: (date: string | null) => void;
   setGoldPrice: (pence: number | null) => void;
   setSilverPrice: (pence: number | null) => void;
-  addZakatPayment: (payment: Omit<ZakatPayment, 'id'>) => void;
+  addZakatPayment: (payment: Omit<ZakatPayment, "id">) => void;
   removeZakatPayment: (id: string) => void;
   /** Pass null to go back to the figure rebuilt from transactions. */
   setZakatWealthOverride: (key: string, pence: number | null) => void;
@@ -63,7 +68,11 @@ type State = {
   load: () => Promise<void>;
 };
 
-function applyOverrides(raw: Transaction[], byTxn: Overrides, byMerchant: Overrides): Transaction[] {
+function applyOverrides(
+  raw: Transaction[],
+  byTxn: Overrides,
+  byMerchant: Overrides
+): Transaction[] {
   return raw.map((t) => {
     const o = byTxn[t.id] ?? byMerchant[t.merchant];
     return o ? { ...t, ...o } : t;
@@ -83,7 +92,7 @@ export const useStore = create<State>()(
       merchantOverrides: {},
       tiltToHide: true,
       amountsHidden: false,
-      analyticsChart: 'income-spending',
+      analyticsChart: "income-spending",
       budgetLimit: null,
       categoryBudgets: {},
       zakatStart: null,
@@ -108,7 +117,8 @@ export const useStore = create<State>()(
         const id = `zakat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
         set({ zakatPayments: [...get().zakatPayments, { ...payment, id }] });
       },
-      removeZakatPayment: (id) => set({ zakatPayments: get().zakatPayments.filter((p) => p.id !== id) }),
+      removeZakatPayment: (id) =>
+        set({ zakatPayments: get().zakatPayments.filter((p) => p.id !== id) }),
       setZakatWealthOverride: (key, pence) => {
         const next = { ...get().zakatWealthOverrides };
         if (pence === null) delete next[key];
@@ -119,7 +129,9 @@ export const useStore = create<State>()(
         const hidden = !get().amountsHidden;
         set({ amountsHidden: hidden });
         Haptics.notificationAsync(
-          hidden ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning,
+          hidden
+            ? Haptics.NotificationFeedbackType.Success
+            : Haptics.NotificationFeedbackType.Warning
         ).catch(() => {});
       },
       setOverride: (txnId, override, applyToMerchant) => {
@@ -131,7 +143,8 @@ export const useStore = create<State>()(
         if (applyToMerchant) {
           nextMerchant = { ...merchantOverrides, [txn.merchant]: override };
           // The merchant rule replaces any earlier one-off edits for this merchant.
-          for (const t of rawTransactions) if (t.merchant === txn.merchant) delete nextTxn[t.id];
+          for (const t of rawTransactions)
+            if (t.merchant === txn.merchant) delete nextTxn[t.id];
         } else {
           nextTxn[txnId] = override;
         }
@@ -149,16 +162,24 @@ export const useStore = create<State>()(
           set({
             accounts,
             rawTransactions: transactions,
-            transactions: applyOverrides(transactions, txnOverrides, merchantOverrides),
+            transactions: applyOverrides(
+              transactions,
+              txnOverrides,
+              merchantOverrides
+            ),
             loading: false,
           });
         } catch (e) {
-          set({ loading: false, error: e instanceof Error ? e.message : 'Could not load transactions' });
+          set({
+            loading: false,
+            error:
+              e instanceof Error ? e.message : "Could not load transactions",
+          });
         }
       },
     }),
     {
-      name: 'budget-settings',
+      name: "budget-settings",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         budgetStartDay: s.budgetStartDay,
@@ -180,9 +201,13 @@ export const useStore = create<State>()(
         const merged = { ...current, ...(persisted as Partial<State>) };
         return {
           ...merged,
-          transactions: applyOverrides(merged.rawTransactions, merged.txnOverrides, merged.merchantOverrides),
+          transactions: applyOverrides(
+            merged.rawTransactions,
+            merged.txnOverrides,
+            merged.merchantOverrides
+          ),
         };
       },
-    },
-  ),
+    }
+  )
 );

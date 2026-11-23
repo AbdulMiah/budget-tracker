@@ -1,11 +1,22 @@
-import { differenceInCalendarDays, format, isAfter, startOfDay } from 'date-fns';
-import { periodEnd, periodStart } from './budgetPeriod';
-import { advance, RecurringPayment } from './recurring';
-import { Category, Transaction } from './types';
+import {
+  differenceInCalendarDays,
+  format,
+  isAfter,
+  startOfDay,
+} from "date-fns";
+
+import { periodEnd, periodStart } from "./budgetPeriod";
+import { advance, RecurringPayment } from "./recurring";
+import { Category, Transaction } from "./types";
 
 export type Upcoming = { payment: RecurringPayment; date: Date };
 
-export type CategoryBudget = { category: Category; limit: number; spent: number; committed: number };
+export type CategoryBudget = {
+  category: Category;
+  limit: number;
+  spent: number;
+  committed: number;
+};
 
 export type BudgetStatus = {
   start: Date;
@@ -29,12 +40,20 @@ export type BudgetStatus = {
  * Recurring payments expected from today to `end`, one entry per charge (a weekly payment can
  * fall several times). A charge already taken today has moved its next date on, so isn't counted twice.
  */
-export function upcomingPayments(recurring: RecurringPayment[], today: Date, end: Date): Upcoming[] {
+export function upcomingPayments(
+  recurring: RecurringPayment[],
+  today: Date,
+  end: Date
+): Upcoming[] {
   const from = startOfDay(today);
   const out: Upcoming[] = [];
   for (const payment of recurring) {
-    if (payment.direction !== 'out' || payment.category === 'Zakat') continue;
-    for (let date = payment.nextDate; !isAfter(date, end); date = advance(date, payment.frequency)) {
+    if (payment.direction !== "out" || payment.category === "Zakat") continue;
+    for (
+      let date = payment.nextDate;
+      !isAfter(date, end);
+      date = advance(date, payment.frequency)
+    ) {
       if (date >= from) out.push({ payment, date });
     }
   }
@@ -47,18 +66,25 @@ export function budgetStatus(
   limit: number,
   categoryLimits: Partial<Record<Category, number>>,
   startDay: number,
-  today: Date,
+  today: Date
 ): BudgetStatus {
   const day = startOfDay(today);
   const start = periodStart(day, startDay);
   const end = periodEnd(start);
-  const from = format(start, 'yyyy-MM-dd');
-  const to = format(day, 'yyyy-MM-dd');
+  const from = format(start, "yyyy-MM-dd");
+  const to = format(day, "yyyy-MM-dd");
 
   const spentBy = new Map<Category, number>();
   let spent = 0;
   for (const t of txns) {
-    if (t.amount >= 0 || t.category === 'Transfer' || t.category === 'Zakat' || t.date < from || t.date > to) continue;
+    if (
+      t.amount >= 0 ||
+      t.category === "Transfer" ||
+      t.category === "Zakat" ||
+      t.date < from ||
+      t.date > to
+    )
+      continue;
     spent -= t.amount;
     spentBy.set(t.category, (spentBy.get(t.category) ?? 0) - t.amount);
   }
@@ -68,7 +94,10 @@ export function budgetStatus(
   let committed = 0;
   for (const u of upcoming) {
     committed += u.payment.amount;
-    committedBy.set(u.payment.category, (committedBy.get(u.payment.category) ?? 0) + u.payment.amount);
+    committedBy.set(
+      u.payment.category,
+      (committedBy.get(u.payment.category) ?? 0) + u.payment.amount
+    );
   }
 
   const remaining = limit - spent - committed;

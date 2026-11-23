@@ -1,8 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from './theme';
+import { Ionicons } from "@expo/vector-icons";
+import { useMemo, useState } from "react";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useTheme } from "./theme";
 
 type Props = {
   visible: boolean;
@@ -18,19 +27,34 @@ type Props = {
 /** Full-screen multi-select list. Changes apply on Done; dismissing discards them. */
 export function PickerModal({ visible, onClose, ...rest }: Props) {
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       {visible && <Body onClose={onClose} {...rest} />}
     </Modal>
   );
 }
 
-function Body({ title, options, selected, searchable, onApply, onClose }: Omit<Props, 'visible'>) {
+function Body({
+  title,
+  options,
+  selected,
+  searchable,
+  onApply,
+  onClose,
+}: Omit<Props, "visible">) {
   const t = useTheme();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [draft, setDraft] = useState(() => new Set(selected));
   const shown = useMemo(
-    () => options.filter((o) => o.toLowerCase().includes(query.trim().toLowerCase())),
-    [options, query],
+    () =>
+      options.filter((o) =>
+        o.toLowerCase().includes(query.trim().toLowerCase())
+      ),
+    [options, query]
   );
 
   const toggle = (value: string) =>
@@ -50,15 +74,25 @@ function Body({ title, options, selected, searchable, onApply, onClose }: Omit<P
   return (
     <SafeAreaView style={[styles.sheet, { backgroundColor: t.bg }]}>
       <View style={styles.header}>
-        <Pressable onPress={() => setDraft(new Set())} disabled={!draft.size} hitSlop={12}>
-          <Text style={{ color: draft.size ? t.primary : t.muted, fontSize: 16 }}>Clear</Text>
+        <Pressable
+          onPress={() => setDraft(new Set())}
+          disabled={!draft.size}
+          hitSlop={12}
+        >
+          <Text
+            style={{ color: draft.size ? t.primary : t.muted, fontSize: 16 }}
+          >
+            Clear
+          </Text>
         </Pressable>
         <Text style={[styles.title, { color: t.text }]}>
           {title}
-          {draft.size ? ` (${draft.size})` : ''}
+          {draft.size ? ` (${draft.size})` : ""}
         </Text>
         <Pressable onPress={done} hitSlop={12}>
-          <Text style={{ color: t.primary, fontSize: 16, fontWeight: '700' }}>Done</Text>
+          <Text style={{ color: t.primary, fontSize: 16, fontWeight: "700" }}>
+            Done
+          </Text>
         </Pressable>
       </View>
       {searchable && (
@@ -69,7 +103,10 @@ function Body({ title, options, selected, searchable, onApply, onClose }: Omit<P
           placeholderTextColor={t.muted}
           autoCorrect={false}
           clearButtonMode="while-editing"
-          style={[styles.search, { backgroundColor: t.card, color: t.text, borderColor: t.border }]}
+          style={[
+            styles.search,
+            { backgroundColor: t.card, color: t.text, borderColor: t.border },
+          ]}
         />
       )}
       <FlatList
@@ -84,8 +121,21 @@ function Body({ title, options, selected, searchable, onApply, onClose }: Omit<P
               accessibilityState={{ checked: on }}
               style={[styles.row, { borderBottomColor: t.border }]}
             >
-              <Text style={{ color: t.text, fontSize: 16, fontWeight: on ? '700' : '400', flex: 1 }}>{item}</Text>
-              <Ionicons name={on ? 'checkbox' : 'square-outline'} size={24} color={on ? t.primary : t.muted} />
+              <Text
+                style={{
+                  color: t.text,
+                  fontSize: 16,
+                  fontWeight: on ? "700" : "400",
+                  flex: 1,
+                }}
+              >
+                {item}
+              </Text>
+              <Ionicons
+                name={on ? "checkbox" : "square-outline"}
+                size={24}
+                color={on ? t.primary : t.muted}
+              />
             </Pressable>
           );
         }}
@@ -97,12 +147,24 @@ function Body({ title, options, selected, searchable, onApply, onClose }: Omit<P
 
 const styles = StyleSheet.create({
   sheet: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-  title: { fontSize: 18, fontWeight: '700' },
-  search: { marginHorizontal: 16, marginBottom: 8, padding: 12, borderRadius: 12, borderWidth: 1, fontSize: 16 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+  },
+  title: { fontSize: 18, fontWeight: "700" },
+  search: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    fontSize: 16,
+  },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,

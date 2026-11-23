@@ -1,7 +1,17 @@
-import { differenceInCalendarDays, parseISO, startOfDay } from 'date-fns';
-import { useMemo } from 'react';
-import { useStore } from '../store/useStore';
-import { meetsNisab, Nisab, nisabValues, PaymentEntry, zakatOn, zakatPayments, ZakatYear, zakatYears } from './zakat';
+import { differenceInCalendarDays, parseISO, startOfDay } from "date-fns";
+import { useMemo } from "react";
+
+import { useStore } from "../store/useStore";
+import {
+  meetsNisab,
+  Nisab,
+  nisabValues,
+  PaymentEntry,
+  zakatOn,
+  zakatPayments,
+  ZakatYear,
+  zakatYears,
+} from "./zakat";
 
 export type ZakatStatus = {
   netWorth: number;
@@ -24,7 +34,15 @@ export type ZakatStatus = {
 };
 
 export function useZakat(): ZakatStatus {
-  const { accounts, transactions, zakatStart, goldPrice, silverPrice, zakatPayments: manual, zakatWealthOverrides } = useStore();
+  const {
+    accounts,
+    transactions,
+    zakatStart,
+    goldPrice,
+    silverPrice,
+    zakatPayments: manual,
+    zakatWealthOverrides,
+  } = useStore();
   return useMemo(() => {
     const today = startOfDay(new Date());
     const netWorth = accounts.reduce((sum, a) => sum + a.balance, 0);
@@ -32,7 +50,15 @@ export function useZakat(): ZakatStatus {
     const start = zakatStart ? parseISO(zakatStart) : null;
     const payments = zakatPayments(manual, transactions);
     const years = start
-      ? zakatYears({ start, today, accounts, txns: transactions, payments, wealthOverrides: zakatWealthOverrides, nisab })
+      ? zakatYears({
+          start,
+          today,
+          accounts,
+          txns: transactions,
+          payments,
+          wealthOverrides: zakatWealthOverrides,
+          nisab,
+        })
       : [];
     const current = years.at(-1) ?? null;
     return {
@@ -47,5 +73,13 @@ export function useZakat(): ZakatStatus {
       daysLeft: current ? differenceInCalendarDays(current.due, today) : 0,
       payments: [...payments].reverse(),
     };
-  }, [accounts, transactions, zakatStart, goldPrice, silverPrice, manual, zakatWealthOverrides]);
+  }, [
+    accounts,
+    transactions,
+    zakatStart,
+    goldPrice,
+    silverPrice,
+    manual,
+    zakatWealthOverrides,
+  ]);
 }

@@ -1,21 +1,29 @@
-import { differenceInCalendarDays, format, startOfDay, startOfYear, subDays, subMonths } from 'date-fns';
-import { Account, Transaction } from './types';
+import {
+  differenceInCalendarDays,
+  format,
+  startOfDay,
+  startOfYear,
+  subDays,
+  subMonths,
+} from "date-fns";
 
-export type RangeKey = '1W' | '1M' | '3M' | '6M' | 'YTD';
-export const RANGES: RangeKey[] = ['1W', '1M', '3M', '6M', 'YTD'];
+import { Account, Transaction } from "./types";
+
+export type RangeKey = "1W" | "1M" | "3M" | "6M" | "YTD";
+export const RANGES: RangeKey[] = ["1W", "1M", "3M", "6M", "YTD"];
 
 export function rangeStart(range: RangeKey, today: Date): Date {
   const t = startOfDay(today);
   switch (range) {
-    case '1W':
+    case "1W":
       return subDays(t, 6);
-    case '1M':
+    case "1M":
       return subMonths(t, 1);
-    case '3M':
+    case "3M":
       return subMonths(t, 3);
-    case '6M':
+    case "6M":
       return subMonths(t, 6);
-    case 'YTD':
+    case "YTD":
       return startOfYear(t);
   }
 }
@@ -30,10 +38,11 @@ export function netWorthSeries(
   accounts: Account[],
   txns: Transaction[],
   from: Date,
-  today: Date,
+  today: Date
 ): NetWorthPoint[] {
   const deltaByDay = new Map<string, number>();
-  for (const t of txns) deltaByDay.set(t.date, (deltaByDay.get(t.date) ?? 0) + t.amount);
+  for (const t of txns)
+    deltaByDay.set(t.date, (deltaByDay.get(t.date) ?? 0) + t.amount);
 
   let value = accounts.reduce((sum, a) => sum + a.balance, 0);
   const days = differenceInCalendarDays(today, from);
@@ -41,7 +50,7 @@ export function netWorthSeries(
   for (let i = 0; i <= days; i++) {
     const d = subDays(today, i);
     points.push({ date: d, value });
-    value -= deltaByDay.get(format(d, 'yyyy-MM-dd')) ?? 0;
+    value -= deltaByDay.get(format(d, "yyyy-MM-dd")) ?? 0;
   }
   return points.reverse();
 }
@@ -57,7 +66,8 @@ export function niceAxis(min: number, max: number): NiceAxis {
   const raw = (span * 1.1) / 4;
   const mag = 10 ** Math.floor(Math.log10(raw));
   const n = raw / mag;
-  const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+  const step =
+    (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
   const axisMin = Math.floor(min / step) * step;
   const sections = Math.floor((max - axisMin) / step) + 1;
   return { axisMin, step, sections };

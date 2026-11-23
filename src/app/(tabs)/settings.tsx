@@ -11,13 +11,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import { EyeButton } from "../../components/EyeButton";
 import { InfoTip } from "../../components/InfoTip";
 import { BANK_COLORS, BANK_NAMES, useTheme } from "../../components/theme";
 import { formatHijri } from "../../lib/hijri";
+import { BankId } from "../../lib/types";
 import { useMoney } from "../../lib/useMoney";
 import { useZakat } from "../../lib/useZakat";
-import { BankId } from "../../lib/types";
 import { provider, usingDemoData } from "../../providers";
 import { useStore } from "../../store/useStore";
 
@@ -109,8 +110,8 @@ export default function SettingsScreen() {
               zakat.current
                 ? `Due ${formatHijri(zakat.current.dueHijri, true)} each year`
                 : zakat.nisab.threshold === null
-                ? "Add gold and silver prices"
-                : "Not started"
+                  ? "Add gold and silver prices"
+                  : "Not started"
             }
             onPress={() => router.push("/zakat-settings")}
           />

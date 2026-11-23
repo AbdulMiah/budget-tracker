@@ -1,7 +1,8 @@
-import * as Linking from 'expo-linking';
-import { categorize } from '../lib/categories';
-import { BankId } from '../lib/types';
-import { BankData, BankProvider } from './types';
+import * as Linking from "expo-linking";
+
+import { categorize } from "../lib/categories";
+import { BankId } from "../lib/types";
+import { BankData, BankProvider } from "./types";
 
 /**
  * Talks to your own backend, which holds the open-banking / Wise credentials.
@@ -20,14 +21,17 @@ export function createRemoteProvider(baseUrl: string): BankProvider {
   return {
     async fetchAll(): Promise<BankData> {
       const [accounts, transactions] = await Promise.all([
-        get<BankData['accounts']>('/accounts'),
-        get<BankData['transactions']>('/transactions'),
+        get<BankData["accounts"]>("/accounts"),
+        get<BankData["transactions"]>("/transactions"),
       ]);
       return {
         // Older backends may not send a type; treat those as current accounts.
-        accounts: accounts.map((a) => ({ ...a, type: a.type ?? 'current' })),
+        accounts: accounts.map((a) => ({ ...a, type: a.type ?? "current" })),
         transactions: transactions
-          .map((t) => ({ ...t, category: t.category ?? categorize(t.merchant, t.description) }))
+          .map((t) => ({
+            ...t,
+            category: t.category ?? categorize(t.merchant, t.description),
+          }))
           .sort((a, b) => b.date.localeCompare(a.date)),
       };
     },

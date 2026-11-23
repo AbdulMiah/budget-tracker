@@ -1,13 +1,13 @@
-export type BankId = 'barclays' | 'lloyds' | 'wise';
+export type BankId = "barclays" | "lloyds" | "wise";
 
-export type AccountType = 'current' | 'credit';
+export type AccountType = "current" | "credit";
 
 export type Account = {
   id: string;
   bank: BankId;
   type: AccountType;
   name: string;
-  currency: 'GBP';
+  currency: "GBP";
   /** Current balance in pence. Negative on a credit card means money owed. */
   balance: number;
 };
@@ -27,20 +27,20 @@ export type Transaction = {
 };
 
 export const CATEGORIES = [
-  'Income',
-  'Rent',
-  'Bills',
-  'Groceries',
-  'Eating out',
-  'Transport',
-  'Shopping',
-  'Subscriptions',
-  'Entertainment',
-  'Travel',
-  'Health',
-  'Zakat',
-  'Transfer',
-  'Other',
+  "Income",
+  "Rent",
+  "Bills",
+  "Groceries",
+  "Eating out",
+  "Transport",
+  "Shopping",
+  "Subscriptions",
+  "Entertainment",
+  "Travel",
+  "Health",
+  "Zakat",
+  "Transfer",
+  "Other",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
@@ -49,7 +49,9 @@ export type Category = (typeof CATEGORIES)[number];
  * Categories money can be budgeted for: everything except income, moving money between accounts,
  * and zakat (a yearly obligation tracked on its own tab, not a monthly spend).
  */
-export const SPENDING_CATEGORIES = CATEGORIES.filter((c) => c !== 'Income' && c !== 'Transfer' && c !== 'Zakat');
+export const SPENDING_CATEGORIES = CATEGORIES.filter(
+  (c) => c !== "Income" && c !== "Transfer" && c !== "Zakat"
+);
 
 /** Which chart Analytics shows. */
-export type ChartType = 'income-spending' | 'spending-trend' | 'categories';
+export type ChartType = "income-spending" | "spending-trend" | "categories";

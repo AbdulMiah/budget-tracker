@@ -1,6 +1,7 @@
-import { DeviceMotion } from 'expo-sensors';
-import { useEffect } from 'react';
-import { useStore } from '../store/useStore';
+import { DeviceMotion } from "expo-sensors";
+import { useEffect } from "react";
+
+import { useStore } from "../store/useStore";
 
 // rotation.beta is the tilt around the phone's horizontal axis in radians:
 // about π/2 held upright, 0 lying flat face up, negative once the top dips below the bottom.

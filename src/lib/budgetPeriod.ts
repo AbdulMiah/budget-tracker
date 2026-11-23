@@ -1,4 +1,4 @@
-import { addDays, addMonths, startOfDay } from 'date-fns';
+import { addDays, addMonths, startOfDay } from "date-fns";
 
 /** Highest allowed budget day; capped at 28 so every month has it. */
 export const MAX_BUDGET_DAY = 28;
