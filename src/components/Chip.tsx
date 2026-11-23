@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
@@ -23,11 +24,11 @@ export function Chip({ label, selected, disabled, onPress }: Props) {
           backgroundColor: selected ? t.primary : t.card,
           borderColor: selected ? t.primary : t.border,
         },
-        disabled && { opacity: 0.35 },
+        disabled && styles.disabled,
       ]}
     >
       <Text
-        style={[styles.label, { color: selected ? "#fff" : t.text }]}
+        style={[styles.label, { color: selected ? WHITE : t.text }]}
         numberOfLines={1}
       >
         {label}
@@ -44,5 +45,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginRight: 8,
   },
+  disabled: { opacity: 0.35 },
   label: { fontSize: 14, fontWeight: "600" },
 });

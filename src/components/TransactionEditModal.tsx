@@ -13,11 +13,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconName, TransactionAvatar } from "@/components/TransactionRow";
-import { CATEGORY_COLORS } from "@/constants";
-import { CATEGORIES, Category, Transaction } from "@/constants/types";
+import { CATEGORY_COLORS, WHITE } from "@/constants";
+import { CATEGORIES, Category, Override, Transaction } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
-import { Override } from "@/store/useStore";
 
 const ICONS: IconName[] = [
   "cart",
@@ -56,7 +55,11 @@ const ICONS: IconName[] = [
 
 type Props = {
   txn: Transaction | null;
-  onSave: (txnId: string, override: Override, applyToMerchant: boolean) => void;
+  onSave: (
+    txn: Transaction,
+    override: Override,
+    applyToMerchant: boolean
+  ) => void;
   onClose: () => void;
 };
 
@@ -84,7 +87,7 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
   const color = CATEGORY_COLORS[category];
 
   const save = () => {
-    onSave(txn.id, { category, icon }, applyToMerchant);
+    onSave(txn, { category, icon }, applyToMerchant);
     onClose();
   };
 
@@ -92,10 +95,12 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
     <SafeAreaView style={[styles.sheet, { backgroundColor: t.bg }]}>
       <View style={styles.header}>
         <Pressable onPress={onClose} hitSlop={12}>
-          <Text style={{ color: t.muted, fontSize: 16 }}>Cancel</Text>
+          <Text style={[styles.headerButton, { color: t.muted }]}>Cancel</Text>
         </Pressable>
         <Pressable onPress={save} hitSlop={12}>
-          <Text style={{ color: t.primary, fontSize: 16, fontWeight: "700" }}>
+          <Text
+            style={[styles.headerButton, styles.save, { color: t.primary }]}
+          >
             Save
           </Text>
         </Pressable>
@@ -115,7 +120,7 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
           <Text style={[styles.amount, { color: t.text }]}>
             {formatSigned(txn.amount)}
           </Text>
-          <Text style={{ color: t.muted, fontSize: 13 }}>
+          <Text style={[styles.date, { color: t.muted }]}>
             {format(parseISO(txn.date), "EEEE d MMMM yyyy")}
           </Text>
         </View>
@@ -139,11 +144,10 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
                 ]}
               >
                 <Text
-                  style={{
-                    color: active ? "#fff" : t.text,
-                    fontWeight: "600",
-                    fontSize: 14,
-                  }}
+                  style={[
+                    styles.categoryText,
+                    { color: active ? WHITE : t.text },
+                  ]}
                 >
                   {c}
                 </Text>
@@ -160,11 +164,10 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
             label="Default (initial)"
           >
             <Text
-              style={{
-                color: icon === null ? "#fff" : t.text,
-                fontWeight: "700",
-                fontSize: 18,
-              }}
+              style={[
+                styles.initial,
+                { color: icon === null ? WHITE : t.text },
+              ]}
             >
               {txn.merchant.charAt(0).toUpperCase()}
             </Text>
@@ -179,7 +182,7 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
               <Ionicons
                 name={name}
                 size={22}
-                color={icon === name ? "#fff" : t.text}
+                color={icon === name ? WHITE : t.text}
               />
             </IconOption>
           ))}
@@ -191,9 +194,7 @@ function Editor({ txn, onSave, onClose }: Props & { txn: Transaction }) {
             { backgroundColor: t.card, borderColor: t.border },
           ]}
         >
-          <Text
-            style={{ color: t.text, fontSize: 15, flex: 1, marginRight: 12 }}
-          >
+          <Text style={[styles.applyText, { color: t.text }]}>
             Apply to all {txn.merchant} transactions
           </Text>
           <Switch value={applyToMerchant} onValueChange={setApplyToMerchant} />
@@ -241,10 +242,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
   },
+  headerButton: { fontSize: 16 },
+  save: { fontWeight: "700" },
   content: { paddingHorizontal: 16, paddingBottom: 32 },
   hero: { alignItems: "center", marginBottom: 8 },
   merchant: { fontSize: 20, fontWeight: "700", marginTop: 12 },
   amount: { fontSize: 28, fontWeight: "800", marginVertical: 2 },
+  date: { fontSize: 13 },
   section: {
     fontSize: 12,
     fontWeight: "700",
@@ -259,6 +263,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
+  categoryText: { fontWeight: "600", fontSize: 14 },
+  initial: { fontWeight: "700", fontSize: 18 },
   icon: {
     width: 46,
     height: 46,
@@ -275,4 +281,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
   },
+  applyText: { flex: 1, marginRight: 12, fontSize: 15 },
 });

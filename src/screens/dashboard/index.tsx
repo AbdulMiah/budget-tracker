@@ -376,7 +376,7 @@ export function DashboardScreen() {
 
       <TransactionEditModal
         txn={editing}
-        onSave={setOverride}
+        onSave={(txn, override, all) => setOverride(txn.id, override, all)}
         onClose={() => setEditing(null)}
       />
     </SafeAreaView>

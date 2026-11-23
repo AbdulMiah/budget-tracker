@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 import { DateRange } from "@/utils/spending-periods";
 
@@ -81,14 +82,14 @@ export function DayCalendar({ mode, value, maxDate, onChange }: Props) {
         >
           <Ionicons name="chevron-back" size={22} color={t.text} />
         </Pressable>
-        <Text style={{ color: t.text, fontSize: 16, fontWeight: "700" }}>
+        <Text style={[styles.month, { color: t.text }]}>
           {format(month, "MMMM yyyy")}
         </Text>
         <Pressable
           onPress={() => canGoNext && setMonth(addMonths(month, 1))}
           hitSlop={12}
           accessibilityLabel="Next month"
-          style={{ opacity: canGoNext ? 1 : 0.3 }}
+          style={!canGoNext && styles.arrowDisabled}
         >
           <Ionicons name="chevron-forward" size={22} color={t.text} />
         </Pressable>
@@ -133,17 +134,20 @@ export function DayCalendar({ mode, value, maxDate, onChange }: Props) {
                   ]}
                 >
                   <Text
-                    style={{
-                      color: isEdge
-                        ? "#fff"
-                        : disabled
-                          ? t.border
-                          : inMonth
-                            ? t.text
-                            : t.muted,
-                      fontWeight: isEdge ? "700" : "500",
-                      opacity: inMonth || isEdge ? 1 : 0.5,
-                    }}
+                    style={[
+                      styles.day,
+                      isEdge && styles.dayEdge,
+                      !inMonth && !isEdge && styles.dayOutside,
+                      {
+                        color: isEdge
+                          ? WHITE
+                          : disabled
+                            ? t.border
+                            : inMonth
+                              ? t.text
+                              : t.muted,
+                      },
+                    ]}
                   >
                     {day.getDate()}
                   </Text>
@@ -165,6 +169,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 4,
   },
+  month: { fontSize: 16, fontWeight: "700" },
+  arrowDisabled: { opacity: 0.3 },
   hint: { textAlign: "center", fontSize: 12, marginBottom: 6 },
   weekRow: { flexDirection: "row" },
   weekday: {
@@ -182,4 +188,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  day: { fontWeight: "500" },
+  dayEdge: { fontWeight: "700" },
+  dayOutside: { opacity: 0.5 },
 });

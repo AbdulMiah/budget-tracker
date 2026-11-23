@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/BottomSheet";
-import { BANK_COLORS, BANK_NAMES } from "@/constants";
+import { BANK_COLORS, BANK_NAMES, WHITE } from "@/constants";
 import { Account } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
@@ -68,9 +68,7 @@ function Body({
   return (
     <View>
       <View style={styles.header}>
-        <Text style={{ color: t.text, fontSize: 18, fontWeight: "700" }}>
-          Accounts
-        </Text>
+        <Text style={[styles.title, { color: t.text }]}>Accounts</Text>
         <Pressable
           onPress={() =>
             setDraft(
@@ -79,7 +77,7 @@ function Body({
           }
           hitSlop={10}
         >
-          <Text style={{ color: t.primary, fontSize: 15, fontWeight: "600" }}>
+          <Text style={[styles.selectAll, { color: t.primary }]}>
             {allSelected ? "Deselect all" : "Select all"}
           </Text>
         </Pressable>
@@ -107,14 +105,14 @@ function Body({
                       { backgroundColor: BANK_COLORS[a.bank] },
                     ]}
                   />
-                  <View style={{ flex: 1, marginRight: 12 }}>
+                  <View style={styles.rowText}>
                     <Text
-                      style={{ color: t.text, fontSize: 16, fontWeight: "600" }}
+                      style={[styles.name, { color: t.text }]}
                       numberOfLines={1}
                     >
                       {a.name}
                     </Text>
-                    <Text style={{ color: t.muted, fontSize: 13 }}>
+                    <Text style={[styles.bank, { color: t.muted }]}>
                       {BANK_NAMES[a.bank]}
                     </Text>
                   </View>
@@ -147,7 +145,7 @@ function Body({
           { backgroundColor: draft.size ? t.primary : t.border },
         ]}
       >
-        <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
+        <Text style={styles.applyText}>
           {draft.size === 0 ? "Select at least one account" : "Apply"}
         </Text>
       </Pressable>
@@ -162,6 +160,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+  title: { fontSize: 18, fontWeight: "700" },
+  selectAll: { fontSize: 15, fontWeight: "600" },
   list: { flexGrow: 0 },
   groupTitle: {
     fontSize: 12,
@@ -178,6 +178,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  rowText: { flex: 1, marginRight: 12 },
+  name: { fontSize: 16, fontWeight: "600" },
+  bank: { fontSize: 13 },
   dot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
   balance: { fontSize: 15, fontWeight: "600", marginRight: 12 },
   apply: {
@@ -187,4 +190,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
+  applyText: { color: WHITE, fontSize: 16, fontWeight: "700" },
 });

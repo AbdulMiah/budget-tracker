@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
@@ -32,14 +33,12 @@ export function IconButton({
           : { backgroundColor: t.card, borderColor: t.border },
       ]}
     >
-      <Ionicons name={icon} size={22} color={count ? "#fff" : t.text} />
+      <Ionicons name={icon} size={22} color={count ? WHITE : t.text} />
       {count > 0 && (
         <View
           style={[styles.badge, { backgroundColor: t.text, borderColor: t.bg }]}
         >
-          <Text style={{ color: t.bg, fontSize: 11, fontWeight: "700" }}>
-            {count}
-          </Text>
+          <Text style={[styles.badgeText, { color: t.bg }]}>{count}</Text>
         </View>
       )}
     </Pressable>
@@ -67,4 +66,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 4,
   },
+  badgeText: { fontSize: 11, fontWeight: "700" },
 });

@@ -40,16 +40,21 @@ export function CategoryPieChart({
           size={size}
           stroke={stroke}
         >
-          <Text style={{ color: t.muted, fontSize: compact ? 10 : 13 }}>
+          <Text
+            style={[
+              styles.spent,
+              compact && styles.spentCompact,
+              { color: t.muted },
+            ]}
+          >
             Spent
           </Text>
           <Text
-            style={{
-              color: t.text,
-              fontSize: compact ? 14 : 22,
-              fontWeight: "800",
-              maxWidth: size - 2 * stroke - 12,
-            }}
+            style={[
+              styles.total,
+              compact && styles.totalCompact,
+              { color: t.text, maxWidth: size - 2 * stroke - 12 },
+            ]}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
@@ -59,14 +64,7 @@ export function CategoryPieChart({
       </View>
 
       {slices.length === 0 ? (
-        <Text
-          style={{
-            color: t.muted,
-            fontSize: 13,
-            textAlign: "center",
-            marginTop: 12,
-          }}
-        >
+        <Text style={[styles.empty, { color: t.muted }]}>
           Nothing spent in this period.
         </Text>
       ) : (
@@ -76,7 +74,7 @@ export function CategoryPieChart({
             return (
               <View
                 key={s.category}
-                style={[styles.legendItem, compact && { width: "100%" }]}
+                style={[styles.legendItem, compact && styles.legendItemCompact]}
                 accessible
                 accessibilityLabel={`${s.category} ${pct}%`}
               >
@@ -88,21 +86,21 @@ export function CategoryPieChart({
                   ]}
                 />
                 <Text
-                  style={{
-                    color: t.text,
-                    fontSize: compact ? 11 : 13,
-                    flex: 1,
-                  }}
+                  style={[
+                    styles.legendLabel,
+                    compact && styles.legendTextCompact,
+                    { color: t.text },
+                  ]}
                   numberOfLines={1}
                 >
                   {s.category}
                 </Text>
                 <Text
-                  style={{
-                    color: t.muted,
-                    fontSize: compact ? 11 : 13,
-                    fontWeight: "600",
-                  }}
+                  style={[
+                    styles.legendPct,
+                    compact && styles.legendTextCompact,
+                    { color: t.muted },
+                  ]}
                 >
                   {pct < 1 ? "<1" : pct}%
                 </Text>
@@ -117,6 +115,11 @@ export function CategoryPieChart({
 
 const styles = StyleSheet.create({
   ring: { alignSelf: "center", marginTop: 4 },
+  spent: { fontSize: 13 },
+  spentCompact: { fontSize: 10 },
+  total: { fontSize: 22, fontWeight: "800" },
+  totalCompact: { fontSize: 14 },
+  empty: { fontSize: 13, textAlign: "center", marginTop: 12 },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -125,6 +128,10 @@ const styles = StyleSheet.create({
     rowGap: 10,
   },
   legendItem: { width: "47%", flexDirection: "row", alignItems: "center" },
+  legendItemCompact: { width: "100%" },
+  legendLabel: { flex: 1, fontSize: 13 },
+  legendPct: { fontSize: 13, fontWeight: "600" },
+  legendTextCompact: { fontSize: 11 },
   swatch: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   legendCompact: { marginTop: 10, rowGap: 4 },
   swatchCompact: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },

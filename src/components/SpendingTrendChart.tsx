@@ -87,11 +87,11 @@ export function SpendingTrendChart({
   return (
     <View>
       <Text
-        style={{
-          color: t.muted,
-          fontSize: compact ? 11 : 13,
-          textAlign: "center",
-        }}
+        style={[
+          styles.spent,
+          compact && styles.spentCompact,
+          { color: t.muted },
+        ]}
       >
         Spent
       </Text>
@@ -157,10 +157,10 @@ export function SpendingTrendChart({
       {!compact && (
         <>
           <View style={styles.axis}>
-            <Text style={{ color: t.muted, fontSize: 11 }}>
+            <Text style={[styles.axisLabel, { color: t.muted }]}>
               {format(fullRange.start, "d MMM")}
             </Text>
-            <Text style={{ color: t.muted, fontSize: 11 }}>
+            <Text style={[styles.axisLabel, { color: t.muted }]}>
               {format(fullRange.end, "d MMM")}
             </Text>
           </View>
@@ -206,12 +206,12 @@ function Key({
         ) : (
           <View style={[styles.swatch, { backgroundColor: color }]} />
         )}
-        <Text style={{ color: t.muted, fontSize: 13 }} numberOfLines={1}>
+        <Text style={[styles.keyLabel, { color: t.muted }]} numberOfLines={1}>
           {label}
         </Text>
       </View>
       <Text
-        style={{ color: t.text, fontSize: 17, fontWeight: "700", marginTop: 2 }}
+        style={[styles.keyValue, { color: t.text }]}
         numberOfLines={1}
         adjustsFontSizeToFit
       >
@@ -222,6 +222,8 @@ function Key({
 }
 
 const styles = StyleSheet.create({
+  spent: { fontSize: 13, textAlign: "center" },
+  spentCompact: { fontSize: 11 },
   big: { fontSize: 30, fontWeight: "800", textAlign: "center", marginTop: 2 },
   bigCompact: { fontSize: 18 },
   comparison: {
@@ -238,6 +240,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: PAD,
     marginTop: 2,
   },
+  axisLabel: { fontSize: 11 },
   legend: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -245,6 +248,8 @@ const styles = StyleSheet.create({
   },
   keyItem: { flex: 1, alignItems: "center", paddingHorizontal: 8 },
   keyRow: { flexDirection: "row", alignItems: "center" },
+  keyLabel: { fontSize: 13 },
+  keyValue: { fontSize: 17, fontWeight: "700", marginTop: 2 },
   swatch: { width: 14, height: 3, borderRadius: 2, marginRight: 6 },
   dashes: { flexDirection: "row", marginRight: 6, gap: 2 },
   dash: { width: 6, height: 3, borderRadius: 1 },

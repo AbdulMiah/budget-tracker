@@ -90,9 +90,7 @@ export function InfoTip({ label, text, size = 16 }: Props) {
                 { left: centre - left - ARROW / 2, backgroundColor: t.text },
               ]}
             />
-            <Text style={{ color: t.bg, fontSize: 13, lineHeight: 18 }}>
-              {text}
-            </Text>
+            <Text style={[styles.bubbleText, { color: t.bg }]}>{text}</Text>
           </View>
         </Pressable>
       </Modal>
@@ -100,40 +98,14 @@ export function InfoTip({ label, text, size = 16 }: Props) {
   );
 }
 
-type SectionProps = {
-  title: string;
-  /** Explanation shown from an info icon after the title. */
-  info?: string;
-  marginTop?: number;
-};
-
-/** An uppercase section label, optionally with an InfoTip. */
-export function SectionTitle({ title, info, marginTop = 8 }: SectionProps) {
-  const t = useTheme();
-  return (
-    <View style={[styles.section, { marginTop }]}>
-      <Text style={[styles.sectionText, { color: t.muted }]}>
-        {title.toUpperCase()}
-      </Text>
-      {info && <InfoTip label={title} text={info} size={14} />}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   backdrop: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
   bubble: { position: "absolute", borderRadius: 12, padding: 12 },
+  bubbleText: { fontSize: 13, lineHeight: 18 },
   arrow: {
     position: "absolute",
     width: ARROW,
     height: ARROW,
     transform: [{ rotate: "45deg" }],
   },
-  section: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  sectionText: { fontSize: 12, fontWeight: "700", letterSpacing: 0.8 },
 });

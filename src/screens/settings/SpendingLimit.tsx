@@ -1,8 +1,8 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { SectionTitle } from "@/components/InfoTip";
 import { MoneyInput } from "@/components/MoneyInput";
+import { SectionTitle } from "@/components/SectionTitle";
 import { CATEGORY_COLORS } from "@/constants";
 import { SPENDING_CATEGORIES } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";

@@ -58,7 +58,7 @@ export function MoneyInput({
     <View
       style={[styles.field, { backgroundColor: t.bg, borderColor: t.border }]}
     >
-      <Text style={{ color: t.muted, fontSize: 15 }}>£</Text>
+      <Text style={[styles.symbol, { color: t.muted }]}>£</Text>
       <TextInput
         value={text}
         onChangeText={setText}
@@ -82,5 +82,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
   },
+  symbol: { fontSize: 15 },
   input: { flex: 1, fontSize: 15, paddingVertical: 8, paddingLeft: 4 },
 });

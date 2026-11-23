@@ -57,21 +57,21 @@ function Bar({ label, value, color, height, plot, compact }: BarProps) {
   const amount = compact ? formatMoneyShort(value) : formatMoney(value);
   return (
     <View
-      style={[styles.column, compact && { paddingHorizontal: 2 }]}
+      style={[styles.column, compact && styles.columnCompact]}
       accessible
       accessibilityLabel={`${label} ${amount}`}
     >
-      <View style={{ height: plot, justifyContent: "flex-end" }}>
+      <View style={[styles.plot, { height: plot }]}>
         <View
           style={[
             styles.bar,
             { width: compact ? 32 : 64, height, backgroundColor: color },
-            compact && { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
+            compact && styles.barCompact,
           ]}
         />
       </View>
       <View style={[styles.baseline, { backgroundColor: t.border }]} />
-      <View style={[styles.key, compact && { marginTop: 6 }]}>
+      <View style={[styles.key, compact && styles.keyCompact]}>
         <View
           style={[
             styles.swatch,
@@ -80,19 +80,22 @@ function Bar({ label, value, color, height, plot, compact }: BarProps) {
           ]}
         />
         <Text
-          style={{ color: t.muted, fontSize: compact ? 11 : 13 }}
+          style={[
+            styles.label,
+            compact && styles.labelCompact,
+            { color: t.muted },
+          ]}
           numberOfLines={1}
         >
           {label}
         </Text>
       </View>
       <Text
-        style={{
-          color: t.text,
-          fontSize: compact ? 13 : 17,
-          fontWeight: "700",
-          marginTop: 2,
-        }}
+        style={[
+          styles.amount,
+          compact && styles.amountCompact,
+          { color: t.text },
+        ]}
         numberOfLines={1}
         adjustsFontSizeToFit
       >
@@ -105,9 +108,17 @@ function Bar({ label, value, color, height, plot, compact }: BarProps) {
 const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-around" },
   column: { flex: 1, alignItems: "center", paddingHorizontal: 8 },
+  columnCompact: { paddingHorizontal: 2 },
+  plot: { justifyContent: "flex-end" },
   bar: { borderTopLeftRadius: 8, borderTopRightRadius: 8 },
+  barCompact: { borderTopLeftRadius: 5, borderTopRightRadius: 5 },
   baseline: { alignSelf: "stretch", height: StyleSheet.hairlineWidth },
   key: { flexDirection: "row", alignItems: "center", marginTop: 10 },
+  keyCompact: { marginTop: 6 },
+  label: { fontSize: 13 },
+  labelCompact: { fontSize: 11 },
+  amount: { fontSize: 17, fontWeight: "700", marginTop: 2 },
+  amountCompact: { fontSize: 13 },
   swatch: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
   swatchSmall: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
 });

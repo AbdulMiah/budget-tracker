@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { SectionTitle } from "@/components/InfoTip";
 import { MoneyInput } from "@/components/MoneyInput";
+import { SectionTitle } from "@/components/SectionTitle";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
 import { useZakat } from "@/hooks/useZakat";

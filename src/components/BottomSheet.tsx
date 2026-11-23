@@ -23,7 +23,7 @@ export function BottomSheet({ visible, onClose, children }: Props) {
     >
       <View style={styles.overlay}>
         <Pressable
-          style={[StyleSheet.absoluteFill, { backgroundColor: "#0008" }]}
+          style={[StyleSheet.absoluteFill, styles.backdrop]}
           onPress={onClose}
           accessibilityLabel="Close"
         />
@@ -39,7 +39,9 @@ function Inner({ children }: { children: ReactNode }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flexShrink: 1, paddingBottom: Math.max(insets.bottom, 16) }}>
+    <View
+      style={[styles.inner, { paddingBottom: Math.max(insets.bottom, 16) }]}
+    >
       <View style={[styles.handle, { backgroundColor: t.border }]} />
       {children}
     </View>
@@ -48,6 +50,8 @@ function Inner({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end" },
+  backdrop: { backgroundColor: "#0008" },
+  inner: { flexShrink: 1 },
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
