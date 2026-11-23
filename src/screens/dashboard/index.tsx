@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { format, startOfDay, subMonths } from "date-fns";
 import { router } from "expo-router";
-import { Fragment, ReactNode, useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -22,13 +22,21 @@ import { SpendingTrendChart } from "@/components/SpendingTrendChart";
 import { TotalsChart } from "@/components/TotalsChart";
 import { TransactionEditModal } from "@/components/TransactionEditModal";
 import { TransactionRow } from "@/components/TransactionRow";
+import { RADIUS, SPACING } from "@/constants";
 import { ChartType, Transaction } from "@/constants/types";
+import { useBankData } from "@/hooks/useBankData";
 import { useBudgetStatus } from "@/hooks/useBudgetStatus";
+import { useEditTransaction } from "@/hooks/useEditTransaction";
 import { useMoney } from "@/hooks/useMoney";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
+import {
+  ChartColumn,
+  COLUMN_PADDING,
+} from "@/screens/dashboard/components/ChartColumn";
 import { SectionHeader } from "@/screens/dashboard/components/SectionHeader";
 import { ZakatSummaryCard } from "@/screens/dashboard/components/ZakatSummaryCard";
-import { useStore } from "@/store/useStore";
 import { netWorthSeries } from "@/utils/analytics";
 import { periodEnd, periodStart } from "@/utils/budget-period";
 import { detectRecurring } from "@/utils/recurring";
@@ -41,9 +49,8 @@ import {
   stepSelection,
 } from "@/utils/spending-periods";
 
-const SCREEN_PADDING = 16;
-const COLUMN_GAP = 12;
-const COLUMN_PADDING = 12;
+const SCREEN_PADDING = SPACING.four;
+const COLUMN_GAP = SPACING.three;
 const PREVIEW_COUNT = 5;
 
 export function DashboardScreen() {
@@ -51,16 +58,11 @@ export function DashboardScreen() {
   const { formatMoney, formatMoneyShort, formatSigned } = useMoney();
   const budget = useBudgetStatus();
   const { width } = useWindowDimensions();
-  const {
-    accounts,
-    transactions,
-    budgetStartDay,
-    loading,
-    error,
-    load,
-    setOverride,
-    setAnalyticsChart,
-  } = useStore();
+  const { accounts, transactions, isPending, error, refetch } = useBankData();
+  const { settings, update } = useSettings();
+  const { budgetStartDay } = settings;
+  const editTransaction = useEditTransaction();
+  const { isRefreshing, onRefresh } = usePullToRefresh(refetch);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   const today = useMemo(() => new Date(), []);
@@ -109,8 +111,10 @@ export function DashboardScreen() {
         .map((r) => ({ category: r.category, amount: r.spending })),
     };
   }, [transactions, budgetStartDay, today]);
+
+  // Analytics opens on whichever chart was tapped.
   const openAnalytics = (chart: ChartType) => {
-    setAnalyticsChart(chart);
+    update({ analyticsChart: chart });
     router.navigate("/analytics");
   };
 
@@ -130,6 +134,7 @@ export function DashboardScreen() {
   const columnWidth = (width - 2 * SCREEN_PADDING - COLUMN_GAP) / 2;
   const columnInner = columnWidth - 2 * COLUMN_PADDING;
   const cardStyle = { backgroundColor: t.card, borderColor: t.border };
+  const overBudget = !!budget && budget.remaining < 0;
 
   return (
     <SafeAreaView
@@ -140,8 +145,8 @@ export function DashboardScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={load}
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
             tintColor={t.muted}
           />
         }
@@ -151,7 +156,9 @@ export function DashboardScreen() {
           <EyeButton />
         </View>
         {error && (
-          <Text style={{ color: t.spend, marginBottom: 12 }}>{error}</Text>
+          <Text style={[styles.error, { color: t.spend }]}>
+            {error.message}
+          </Text>
         )}
 
         <Pressable
@@ -162,15 +169,15 @@ export function DashboardScreen() {
             styles.card,
             styles.hero,
             cardStyle,
-            { opacity: pressed ? 0.7 : 1 },
+            pressed && styles.pressed,
           ]}
         >
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: t.muted, fontSize: 14 }}>Net worth</Text>
-            {loading && !accounts.length ? (
-              <ActivityIndicator
-                style={{ alignSelf: "flex-start", marginVertical: 12 }}
-              />
+          <View style={styles.heroText}>
+            <Text style={[styles.heroLabel, { color: t.muted }]}>
+              Net worth
+            </Text>
+            {isPending ? (
+              <ActivityIndicator style={styles.heroSpinner} />
             ) : (
               <Text
                 style={[styles.netWorth, { color: t.text }]}
@@ -181,10 +188,10 @@ export function DashboardScreen() {
               </Text>
             )}
             <Text
-              style={{
-                color: monthChange >= 0 ? t.income : t.spend,
-                fontWeight: "600",
-              }}
+              style={[
+                styles.monthChange,
+                { color: monthChange >= 0 ? t.income : t.spend },
+              ]}
             >
               {formatSigned(monthChange)} in the last month
             </Text>
@@ -206,9 +213,7 @@ export function DashboardScreen() {
             width={columnWidth}
             onPress={() => openAnalytics("income-spending")}
           >
-            <Text style={{ color: t.muted, fontSize: 11, textAlign: "center" }}>
-              Net
-            </Text>
+            <Text style={[styles.caption, { color: t.muted }]}>Net</Text>
             <Text
               style={[
                 styles.net,
@@ -262,16 +267,14 @@ export function DashboardScreen() {
                 size={Math.min(columnInner, 100)}
                 stroke={12}
               >
-                <Text style={{ color: t.muted, fontSize: 10 }}>
-                  {budget && budget.remaining < 0 ? "Over by" : "Left"}
+                <Text style={[styles.donutLabel, { color: t.muted }]}>
+                  {overBudget ? "Over by" : "Left"}
                 </Text>
                 <Text
-                  style={{
-                    color: budget && budget.remaining < 0 ? t.spend : t.text,
-                    fontSize: 14,
-                    fontWeight: "800",
-                    maxWidth: 70,
-                  }}
+                  style={[
+                    styles.donutValue,
+                    { color: overBudget ? t.spend : t.text },
+                  ]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                 >
@@ -279,7 +282,7 @@ export function DashboardScreen() {
                 </Text>
               </DonutRing>
             </View>
-            <Text style={{ color: t.muted, fontSize: 12, textAlign: "center" }}>
+            <Text style={[styles.allowance, { color: t.muted }]}>
               {budget
                 ? `${formatMoneyShort(budget.dailyAllowance)} a day to spend`
                 : "Tap to set a limit"}
@@ -287,7 +290,7 @@ export function DashboardScreen() {
           </ChartColumn>
         </View>
 
-        <View style={[styles.columns, { marginTop: COLUMN_GAP }]}>
+        <View style={[styles.columns, styles.secondRow]}>
           <ChartColumn
             title="Spending trend"
             subtitle="vs last month"
@@ -336,7 +339,7 @@ export function DashboardScreen() {
               />
             </Fragment>
           ))}
-          {!recent.length && !loading && (
+          {!recent.length && !isPending && (
             <Text style={[styles.empty, { color: t.muted }]}>
               No transactions yet.
             </Text>
@@ -366,7 +369,7 @@ export function DashboardScreen() {
               />
             </Fragment>
           ))}
-          {!recurring.length && !loading && (
+          {!recurring.length && !isPending && (
             <Text style={[styles.empty, { color: t.muted }]}>
               No recurring payments found yet.
             </Text>
@@ -376,85 +379,54 @@ export function DashboardScreen() {
 
       <TransactionEditModal
         txn={editing}
-        onSave={(txn, override, all) => setOverride(txn.id, override, all)}
+        onSave={editTransaction}
         onClose={() => setEditing(null)}
       />
     </SafeAreaView>
   );
 }
 
-/** A tappable dashboard card in the two-column grid. */
-function ChartColumn({
-  title,
-  subtitle,
-  width,
-  onPress,
-  hint = "Opens this chart in Analytics",
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  width: number;
-  onPress?: () => void;
-  /** Screen reader hint for onPress; defaults to opening the chart in Analytics. */
-  hint?: string;
-  children: ReactNode;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? "button" : undefined}
-      accessibilityHint={onPress ? hint : undefined}
-      style={({ pressed }) => [
-        styles.card,
-        styles.column,
-        {
-          width,
-          backgroundColor: t.card,
-          borderColor: t.border,
-          opacity: pressed ? 0.7 : 1,
-        },
-      ]}
-    >
-      <Text style={[styles.columnTitle, { color: t.text }]}>{title}</Text>
-      <Text style={[styles.columnSub, { color: t.muted }]}>{subtitle}</Text>
-      {children}
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: SCREEN_PADDING, paddingBottom: 32 },
+  content: { padding: SCREEN_PADDING, paddingBottom: SPACING.six },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  h1: { fontSize: 30, fontWeight: "800", marginBottom: 12 },
-  card: { borderRadius: 16, borderWidth: 1 },
+  h1: { fontSize: 30, fontWeight: "800", marginBottom: SPACING.three },
+  error: { marginBottom: SPACING.three },
+  card: { borderRadius: RADIUS.large, borderWidth: 1 },
+  pressed: { opacity: 0.7 },
   hero: { flexDirection: "row", alignItems: "center", padding: 20 },
-  netWorth: { fontSize: 40, fontWeight: "800", marginVertical: 4 },
+  heroText: { flex: 1 },
+  heroLabel: { fontSize: 14 },
+  heroSpinner: { alignSelf: "flex-start", marginVertical: SPACING.three },
+  netWorth: { fontSize: 40, fontWeight: "800", marginVertical: SPACING.one },
+  monthChange: { fontWeight: "600" },
   columns: { flexDirection: "row", justifyContent: "space-between" },
-  column: { padding: COLUMN_PADDING },
-  columnTitle: { fontSize: 14, fontWeight: "700" },
-  columnSub: { fontSize: 12, marginTop: 2, marginBottom: 10 },
+  secondRow: { marginTop: COLUMN_GAP },
+  caption: { fontSize: 11, textAlign: "center" },
   net: {
     fontSize: 18,
     fontWeight: "800",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: SPACING.two,
   },
   donut: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: SPACING.two,
   },
+  donutLabel: { fontSize: 10 },
+  donutValue: { fontSize: 14, fontWeight: "800", maxWidth: 70 },
+  allowance: { fontSize: 12, textAlign: "center" },
   list: { overflow: "hidden" },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 68 },
-  recurringRow: { paddingHorizontal: 16, paddingVertical: 12 },
+  recurringRow: {
+    paddingHorizontal: SPACING.four,
+    paddingVertical: SPACING.three,
+  },
   empty: { textAlign: "center", padding: 20 },
 });

@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Chip } from "@/components/Chip";
 import { DayCalendar } from "@/components/DayCalendar";
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 import {
   MonthGrid,
@@ -115,15 +116,15 @@ function Body({
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: t.border }]}>
-        <View style={{ flex: 1, marginRight: 12 }}>
-          <Text
-            style={{ color: t.text, fontSize: 15, fontWeight: "700" }}
-            numberOfLines={1}
-          >
+        <View style={styles.summary}>
+          <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
             {title}
           </Text>
           {subtitle && (
-            <Text style={{ color: t.muted, fontSize: 12 }} numberOfLines={1}>
+            <Text
+              style={[styles.subtitle, { color: t.muted }]}
+              numberOfLines={1}
+            >
               {subtitle}
             </Text>
           )}
@@ -136,9 +137,7 @@ function Body({
           accessibilityRole="button"
           style={[styles.apply, { backgroundColor: t.primary }]}
         >
-          <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
-            Apply
-          </Text>
+          <Text style={styles.applyText}>Apply</Text>
         </Pressable>
       </View>
     </View>
@@ -158,10 +157,14 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
+  summary: { flex: 1, marginRight: 12 },
+  title: { fontSize: 15, fontWeight: "700" },
+  subtitle: { fontSize: 12 },
   apply: {
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 14,
     alignItems: "center",
   },
+  applyText: { color: WHITE, fontSize: 16, fontWeight: "700" },
 });

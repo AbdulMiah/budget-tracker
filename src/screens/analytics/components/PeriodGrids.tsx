@@ -3,8 +3,10 @@ import { addDays, addMonths, format } from "date-fns";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 import { periodStart } from "@/utils/budget-period";
+import { ordinal } from "@/utils/helpers";
 
 const YEARS_PER_PAGE = 6;
 
@@ -166,15 +168,13 @@ function TileGrid({
         <Pressable onPress={onPrev} hitSlop={12} accessibilityLabel={prevLabel}>
           <Ionicons name="chevron-back" size={22} color={t.text} />
         </Pressable>
-        <Text style={{ color: t.text, fontSize: 16, fontWeight: "700" }}>
-          {title}
-        </Text>
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
         <Pressable
           onPress={onNext}
           disabled={!hasNext}
           hitSlop={12}
           accessibilityLabel={nextLabel}
-          style={{ opacity: hasNext ? 1 : 0.3 }}
+          style={!hasNext && styles.arrowDisabled}
         >
           <Ionicons name="chevron-forward" size={22} color={t.text} />
         </Pressable>
@@ -192,33 +192,34 @@ function TileGrid({
             }}
             style={[
               styles.tile,
-              { width: columns === 2 ? "48.5%" : "31.5%" },
+              columns === 2 ? styles.tileHalf : styles.tileThird,
               tile.selected
                 ? { backgroundColor: t.primary, borderColor: t.primary }
                 : { backgroundColor: t.card, borderColor: t.border },
             ]}
           >
             <Text
-              style={{
-                color: tile.selected
-                  ? "#fff"
-                  : tile.disabled
-                    ? t.border
-                    : t.text,
-                fontSize: 15,
-                fontWeight: tile.selected ? "700" : "500",
-              }}
+              style={[
+                styles.label,
+                tile.selected && styles.labelSelected,
+                {
+                  color: tile.selected
+                    ? WHITE
+                    : tile.disabled
+                      ? t.border
+                      : t.text,
+                },
+              ]}
             >
               {tile.label}
             </Text>
             {tile.sublabel && (
               <Text
-                style={{
-                  color: tile.selected ? "#fff" : t.muted,
-                  fontSize: 12,
-                  marginTop: 2,
-                  opacity: tile.disabled ? 0.5 : 1,
-                }}
+                style={[
+                  styles.sublabel,
+                  tile.disabled && styles.sublabelDisabled,
+                  { color: tile.selected ? WHITE : t.muted },
+                ]}
               >
                 {tile.sublabel}
               </Text>
@@ -231,18 +232,6 @@ function TileGrid({
   );
 }
 
-function ordinal(n: number) {
-  const suffix =
-    n % 10 === 1 && n !== 11
-      ? "st"
-      : n % 10 === 2 && n !== 12
-        ? "nd"
-        : n % 10 === 3 && n !== 13
-          ? "rd"
-          : "th";
-  return `${n}${suffix}`;
-}
-
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
@@ -251,6 +240,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 10,
   },
+  title: { fontSize: 16, fontWeight: "700" },
+  arrowDisabled: { opacity: 0.3 },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -263,5 +254,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
   },
+  tileHalf: { width: "48.5%" },
+  tileThird: { width: "31.5%" },
+  label: { fontSize: 15, fontWeight: "500" },
+  labelSelected: { fontWeight: "700" },
+  sublabel: { fontSize: 12, marginTop: 2 },
+  sublabelDisabled: { opacity: 0.5 },
   note: { fontSize: 12, textAlign: "center", marginTop: 10 },
 });

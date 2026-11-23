@@ -8,24 +8,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DonutRing } from "@/components/DonutRing";
 import { EyeButton } from "@/components/EyeButton";
 import { InfoTip } from "@/components/InfoTip";
+import { LegendKey } from "@/components/LegendKey";
 import { RecurringRow } from "@/components/RecurringRow";
-import { CATEGORY_COLORS } from "@/constants";
+import { RADIUS, SPACING, WHITE } from "@/constants";
+import { useBankData } from "@/hooks/useBankData";
 import { useBudgetStatus } from "@/hooks/useBudgetStatus";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
-import { CategoryBudget } from "@/utils/budget";
+import { CategoryBudgetRow } from "@/screens/budget/components/CategoryBudgetRow";
 
 export function BudgetScreen() {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const accounts = useStore((s) => s.accounts);
+  const { accounts } = useBankData();
   const accountById = useMemo(
     () => new Map(accounts.map((a) => [a.id, a])),
     [accounts]
   );
   const status = useBudgetStatus();
   const editBudget = () => router.push("/spending-limit");
+  const cardColors = { backgroundColor: t.card, borderColor: t.border };
 
   return (
     <SafeAreaView
@@ -39,18 +41,12 @@ export function BudgetScreen() {
         </View>
 
         {!status ? (
-          <View
-            style={[
-              styles.card,
-              styles.empty,
-              { backgroundColor: t.card, borderColor: t.border },
-            ]}
-          >
+          <View style={[styles.card, styles.empty, cardColors]}>
             <Ionicons name="wallet-outline" size={40} color={t.muted} />
             <Text style={[styles.emptyTitle, { color: t.text }]}>
               No budget set
             </Text>
-            <Text style={{ color: t.muted, fontSize: 14, textAlign: "center" }}>
+            <Text style={[styles.emptyText, { color: t.muted }]}>
               Set a monthly spending limit to see what&apos;s left and how much
               you can spend each day.
             </Text>
@@ -59,21 +55,14 @@ export function BudgetScreen() {
               accessibilityRole="button"
               style={[styles.button, { backgroundColor: t.primary }]}
             >
-              <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
-                Set a budget
-              </Text>
+              <Text style={styles.buttonText}>Set a budget</Text>
             </Pressable>
           </View>
         ) : (
           <>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, cardColors]}>
               <View style={styles.cardHeader}>
-                <Text style={{ color: t.muted, fontSize: 13 }}>
+                <Text style={[styles.dates, { color: t.muted }]}>
                   {format(status.start, "d MMM")} –{" "}
                   {format(status.end, "d MMM yyyy")}
                 </Text>
@@ -82,15 +71,7 @@ export function BudgetScreen() {
                   hitSlop={10}
                   accessibilityRole="button"
                 >
-                  <Text
-                    style={{
-                      color: t.primary,
-                      fontSize: 14,
-                      fontWeight: "600",
-                    }}
-                  >
-                    Edit
-                  </Text>
+                  <Text style={[styles.edit, { color: t.primary }]}>Edit</Text>
                 </Pressable>
               </View>
               <View style={styles.ring}>
@@ -110,7 +91,7 @@ export function BudgetScreen() {
                   size={200}
                   stroke={22}
                 >
-                  <Text style={{ color: t.muted, fontSize: 13 }}>
+                  <Text style={[styles.ringLabel, { color: t.muted }]}>
                     {status.remaining < 0 ? "Over by" : "Left"}
                   </Text>
                   <Text
@@ -123,23 +104,23 @@ export function BudgetScreen() {
                   >
                     {formatMoney(Math.abs(status.remaining))}
                   </Text>
-                  <Text style={{ color: t.muted, fontSize: 12 }}>
+                  <Text style={[styles.ringOf, { color: t.muted }]}>
                     of {formatMoney(status.limit)}
                   </Text>
                 </DonutRing>
               </View>
               <View style={styles.legend}>
-                <Key
+                <LegendKey
                   color={t.spend}
                   label="Spent"
                   value={formatMoney(status.spent)}
                 />
-                <Key
+                <LegendKey
                   color={t.committed}
                   label="Committed"
                   value={formatMoney(status.committed)}
                 />
-                <Key
+                <LegendKey
                   color={t.border}
                   label="Left"
                   value={formatMoney(Math.max(0, status.remaining))}
@@ -147,13 +128,7 @@ export function BudgetScreen() {
               </View>
             </View>
 
-            <View
-              style={[
-                styles.card,
-                styles.allowance,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, styles.allowance, cardColors]}>
               <View
                 style={[
                   styles.allowanceIcon,
@@ -162,11 +137,9 @@ export function BudgetScreen() {
               >
                 <Ionicons name="today-outline" size={22} color={t.primary} />
               </View>
-              <View style={{ flex: 1, marginHorizontal: 12 }}>
+              <View style={styles.allowanceText}>
                 <View style={styles.tipRow}>
-                  <Text
-                    style={{ color: t.text, fontSize: 16, fontWeight: "700" }}
-                  >
+                  <Text style={[styles.allowanceTitle, { color: t.text }]}>
                     Daily allowance
                   </Text>
                   <InfoTip
@@ -174,7 +147,7 @@ export function BudgetScreen() {
                     text={`${formatMoney(status.limit)} budget − ${formatMoney(status.spent)} spent − ${formatMoney(status.committed)} committed, shared across ${status.daysLeft} ${status.daysLeft === 1 ? "day" : "days"} left.`}
                   />
                 </View>
-                <Text style={{ color: t.muted, fontSize: 13, marginTop: 2 }}>
+                <Text style={[styles.allowanceSub, { color: t.muted }]}>
                   {status.remaining < 0
                     ? "Spending and commitments are over your limit"
                     : `For ${status.daysLeft === 1 ? "today" : `the next ${status.daysLeft} days`}, until ${format(status.end, "d MMM")}`}
@@ -187,11 +160,7 @@ export function BudgetScreen() {
                 ]}
               >
                 {formatMoney(status.dailyAllowance)}
-                <Text
-                  style={{ fontSize: 13, fontWeight: "600", color: t.muted }}
-                >
-                  /day
-                </Text>
+                <Text style={[styles.perDay, { color: t.muted }]}>/day</Text>
               </Text>
             </View>
 
@@ -200,14 +169,13 @@ export function BudgetScreen() {
                 <Text style={[styles.section, { color: t.muted }]}>
                   CATEGORIES
                 </Text>
-                <View
-                  style={[
-                    styles.card,
-                    { backgroundColor: t.card, borderColor: t.border },
-                  ]}
-                >
+                <View style={[styles.card, cardColors]}>
                   {status.categories.map((c, i) => (
-                    <CategoryRow key={c.category} item={c} first={i === 0} />
+                    <CategoryBudgetRow
+                      key={c.category}
+                      item={c}
+                      first={i === 0}
+                    />
                   ))}
                 </View>
               </>
@@ -216,22 +184,9 @@ export function BudgetScreen() {
             <Text style={[styles.section, { color: t.muted }]}>
               COMMITTED THIS MONTH
             </Text>
-            <View
-              style={[
-                styles.card,
-                styles.list,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, styles.list, cardColors]}>
               {status.upcoming.length === 0 ? (
-                <Text
-                  style={{
-                    color: t.muted,
-                    fontSize: 14,
-                    textAlign: "center",
-                    padding: 16,
-                  }}
-                >
+                <Text style={[styles.noUpcoming, { color: t.muted }]}>
                   No more recurring payments due this month.
                 </Text>
               ) : (
@@ -265,152 +220,74 @@ export function BudgetScreen() {
   );
 }
 
-function Key({
-  color,
-  label,
-  value,
-}: {
-  color: string;
-  label: string;
-  value: string;
-}) {
-  const t = useTheme();
-  return (
-    <View
-      style={styles.key}
-      accessible
-      accessibilityLabel={`${label} ${value}`}
-    >
-      <View style={styles.keyRow}>
-        <View style={[styles.swatch, { backgroundColor: color }]} />
-        <Text style={{ color: t.muted, fontSize: 13 }}>{label}</Text>
-      </View>
-      <Text
-        style={{ color: t.text, fontSize: 16, fontWeight: "700", marginTop: 2 }}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function CategoryRow({
-  item,
-  first,
-}: {
-  item: CategoryBudget;
-  first: boolean;
-}) {
-  const t = useTheme();
-  const { formatMoney } = useMoney();
-  const used = item.spent + item.committed;
-  const over = used > item.limit;
-  const scale = Math.max(item.limit, used, 1);
-  return (
-    <View
-      style={[
-        styles.categoryRow,
-        !first && {
-          borderTopColor: t.border,
-          borderTopWidth: StyleSheet.hairlineWidth,
-        },
-      ]}
-    >
-      <View style={styles.categoryTop}>
-        <View
-          style={[
-            styles.swatch,
-            { backgroundColor: CATEGORY_COLORS[item.category] },
-          ]}
-        />
-        <Text style={{ color: t.text, fontSize: 15, flex: 1 }}>
-          {item.category}
-        </Text>
-        <Text
-          style={{
-            color: over ? t.spend : t.muted,
-            fontSize: 13,
-            fontWeight: "600",
-          }}
-        >
-          {formatMoney(used)} of {formatMoney(item.limit)}
-        </Text>
-      </View>
-      <View style={[styles.track, { backgroundColor: t.border }]}>
-        <View
-          style={{
-            width: `${(item.spent / scale) * 100}%`,
-            backgroundColor: over ? t.spend : CATEGORY_COLORS[item.category],
-          }}
-        />
-        <View
-          style={{
-            width: `${(item.committed / scale) * 100}%`,
-            backgroundColor: t.committed,
-          }}
-        />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32 },
+  content: { padding: SPACING.four, paddingBottom: SPACING.six },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  h1: { fontSize: 30, fontWeight: "800", marginBottom: 12 },
-  card: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 12 },
-  empty: { alignItems: "center", paddingVertical: 32, gap: 8 },
+  h1: { fontSize: 30, fontWeight: "800", marginBottom: SPACING.three },
+  card: {
+    padding: SPACING.four,
+    borderRadius: RADIUS.large,
+    borderWidth: 1,
+    marginBottom: SPACING.three,
+  },
+  empty: {
+    alignItems: "center",
+    paddingVertical: SPACING.six,
+    gap: SPACING.two,
+  },
   emptyTitle: { fontSize: 18, fontWeight: "700" },
+  emptyText: { fontSize: 14, textAlign: "center" },
   button: {
-    marginTop: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    marginTop: SPACING.two,
+    paddingVertical: SPACING.three,
+    paddingHorizontal: SPACING.five,
     borderRadius: 14,
   },
+  buttonText: { color: WHITE, fontSize: 16, fontWeight: "700" },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  ring: { alignItems: "center", marginVertical: 16 },
+  dates: { fontSize: 13 },
+  edit: { fontSize: 14, fontWeight: "600" },
+  ring: { alignItems: "center", marginVertical: SPACING.four },
+  ringLabel: { fontSize: 13 },
   left: { fontSize: 26, fontWeight: "800", maxWidth: 140 },
+  ringOf: { fontSize: 12 },
   legend: { flexDirection: "row", justifyContent: "space-between" },
-  key: { flex: 1, alignItems: "center" },
-  keyRow: { flexDirection: "row", alignItems: "center" },
-  swatch: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
-  allowance: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
-  tipRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  allowance: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.four,
+  },
   allowanceIcon: {
     width: 42,
     height: 42,
-    borderRadius: 12,
+    borderRadius: RADIUS.medium,
     alignItems: "center",
     justifyContent: "center",
   },
+  allowanceText: { flex: 1, marginHorizontal: SPACING.three },
+  tipRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  allowanceTitle: { fontSize: 16, fontWeight: "700" },
+  allowanceSub: { fontSize: 13, marginTop: SPACING.half },
   allowanceValue: { fontSize: 20, fontWeight: "800" },
+  perDay: { fontSize: 13, fontWeight: "600" },
   section: {
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.8,
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  categoryRow: { paddingVertical: 10 },
-  categoryTop: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  track: {
-    flexDirection: "row",
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
+    marginTop: SPACING.one,
+    marginBottom: SPACING.two,
   },
   list: { padding: 0, overflow: "hidden" },
-  row: { paddingHorizontal: 16, paddingVertical: 12 },
+  noUpcoming: { fontSize: 14, textAlign: "center", padding: SPACING.four },
+  row: { paddingHorizontal: SPACING.four, paddingVertical: SPACING.three },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 68 },
 });

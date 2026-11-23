@@ -24,11 +24,8 @@ export function ZakatSummaryCard() {
       accessibilityHint="Opens your zakat"
       style={({ pressed }) => [
         styles.card,
-        {
-          backgroundColor: t.card,
-          borderColor: t.border,
-          opacity: pressed ? 0.7 : 1,
-        },
+        pressed && styles.pressed,
+        { backgroundColor: t.card, borderColor: t.border },
       ]}
     >
       {!current ? (
@@ -45,15 +42,15 @@ export function ZakatSummaryCard() {
               color={CATEGORY_COLORS.Zakat}
             />
           </View>
-          <View style={{ flex: 1, marginHorizontal: 12 }}>
-            <Text style={{ color: t.text, fontSize: 15, fontWeight: "700" }}>
+          <View style={styles.middle}>
+            <Text style={[styles.title, { color: t.text }]}>
               {zakat.nisab.threshold === null
                 ? "Check your nisab"
                 : zakat.aboveNisab
                   ? "Zakat will be fardh on you"
                   : "Below nisab"}
             </Text>
-            <Text style={{ color: t.muted, fontSize: 13, marginTop: 2 }}>
+            <Text style={[styles.sub, { color: t.muted }]}>
               {zakat.nisab.threshold === null
                 ? "Add gold and silver prices to see whether zakat is due."
                 : zakat.aboveNisab
@@ -66,19 +63,19 @@ export function ZakatSummaryCard() {
       ) : (
         <>
           <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: t.text, fontSize: 15, fontWeight: "700" }}>
+            <View style={styles.fill}>
+              <Text style={[styles.title, { color: t.text }]}>
                 Due {formatHijri(current.dueHijri)}
               </Text>
-              <Text style={{ color: t.muted, fontSize: 13, marginTop: 2 }}>
+              <Text style={[styles.sub, { color: t.muted }]}>
                 {format(current.due, "EEE d MMM yyyy")}
               </Text>
             </View>
-            <View style={{ alignItems: "flex-end" }}>
+            <View style={styles.right}>
               <Text style={[styles.days, { color: t.text }]}>
                 {zakat.daysLeft}
               </Text>
-              <Text style={{ color: t.muted, fontSize: 12 }}>
+              <Text style={[styles.daysLabel, { color: t.muted }]}>
                 {zakat.daysLeft === 1 ? "day left" : "days left"}
               </Text>
             </View>
@@ -87,6 +84,7 @@ export function ZakatSummaryCard() {
           <View style={[styles.track, { backgroundColor: t.border }]}>
             <View
               style={{
+                // The share of this year's zakat paid so far.
                 width: `${current.zakat > 0 ? Math.min(100, (Math.max(0, current.paid) / current.zakat) * 100) : 0}%`,
                 backgroundColor: t.income,
               }}
@@ -109,15 +107,7 @@ export function ZakatSummaryCard() {
           {overdue > 0 && (
             <View style={[styles.overdue, { backgroundColor: t.spend + "14" }]}>
               <Ionicons name="alert-circle" size={16} color={t.spend} />
-              <Text
-                style={{
-                  color: t.spend,
-                  fontSize: 13,
-                  fontWeight: "600",
-                  marginLeft: 6,
-                  flex: 1,
-                }}
-              >
+              <Text style={[styles.overdueText, { color: t.spend }]}>
                 {formatMoney(overdue)} still due from previous{" "}
                 {zakat.overdue.length === 1 ? "year" : "years"}
               </Text>
@@ -141,24 +131,18 @@ function Amount({
   const t = useTheme();
   return (
     <View
-      style={{ flex: 1 }}
+      style={styles.fill}
       accessible
       accessibilityLabel={`${label} ${value}`}
     >
       <Text
-        style={{ color: t.muted, fontSize: 12, textAlign: align }}
+        style={[styles.amountLabel, { color: t.muted, textAlign: align }]}
         numberOfLines={1}
       >
         {label}
       </Text>
       <Text
-        style={{
-          color: t.text,
-          fontSize: 15,
-          fontWeight: "700",
-          marginTop: 2,
-          textAlign: align,
-        }}
+        style={[styles.amountValue, { color: t.text, textAlign: align }]}
         numberOfLines={1}
         adjustsFontSizeToFit
       >
@@ -170,7 +154,14 @@ function Amount({
 
 const styles = StyleSheet.create({
   card: { borderRadius: 16, borderWidth: 1, padding: 16 },
+  pressed: { opacity: 0.7 },
   row: { flexDirection: "row", alignItems: "center" },
+  fill: { flex: 1 },
+  middle: { flex: 1, marginHorizontal: 12 },
+  right: { alignItems: "flex-end" },
+  title: { fontSize: 15, fontWeight: "700" },
+  sub: { fontSize: 13, marginTop: 2 },
+  daysLabel: { fontSize: 12 },
   icon: {
     width: 40,
     height: 40,
@@ -188,6 +179,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   amounts: { flexDirection: "row" },
+  amountLabel: { fontSize: 12 },
+  amountValue: { fontSize: 15, fontWeight: "700", marginTop: 2 },
   overdue: {
     flexDirection: "row",
     alignItems: "center",
@@ -195,4 +188,5 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 12,
   },
+  overdueText: { flex: 1, fontSize: 13, fontWeight: "600", marginLeft: 6 },
 });

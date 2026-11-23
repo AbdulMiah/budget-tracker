@@ -18,17 +18,16 @@ import { IconButton } from "@/components/IconButton";
 import { SpendingTrendChart } from "@/components/SpendingTrendChart";
 import { TotalsChart } from "@/components/TotalsChart";
 import { TransactionAvatar } from "@/components/TransactionRow";
-import { CATEGORY_COLORS } from "@/constants";
+import { CATEGORY_COLORS, CHART_TYPE_OPTIONS } from "@/constants";
+import { Category } from "@/constants/types";
+import { useBankData } from "@/hooks/useBankData";
 import { useMoney } from "@/hooks/useMoney";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
-import {
-  CHART_TYPES,
-  ChartTypeSheet,
-} from "@/screens/analytics/components/ChartTypeSheet";
+import { ChartTypeSheet } from "@/screens/analytics/components/ChartTypeSheet";
 import { PeriodDots } from "@/screens/analytics/components/PeriodDots";
 import { PeriodSheet } from "@/screens/analytics/components/PeriodSheet";
 import { SwipeablePeriod } from "@/screens/analytics/components/SwipeablePeriod";
-import { useStore } from "@/store/useStore";
 import {
   dailySpending,
   GroupBy,
@@ -55,13 +54,9 @@ export function SpendingSection() {
   const t = useTheme();
   const { formatSigned } = useMoney();
   const { width } = useWindowDimensions();
-  const {
-    transactions,
-    accounts,
-    budgetStartDay,
-    analyticsChart: chartType,
-    setAnalyticsChart: setChartType,
-  } = useStore();
+  const { transactions, accounts } = useBankData();
+  const { settings, update } = useSettings();
+  const { budgetStartDay, analyticsChart: chartType } = settings;
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selection, setSelection] = useState<PeriodSelection>(() => ({
@@ -123,7 +118,7 @@ export function SpendingSection() {
       .sort((a, b) => b.spending - a.spending)
       .map((r) => ({ category: r.category, amount: r.spending }));
   }, [chartType, filtered, range]);
-  const chartIcon = CHART_TYPES.find((c) => c.type === chartType)!.icon;
+  const chartIcon = CHART_TYPE_OPTIONS.find((c) => c.type === chartType)!.icon;
   const canStep = useCallback(
     (dir: 1 | -1) =>
       stepSelection(selection, dir, budgetStartDay, today) !== null,
@@ -149,15 +144,18 @@ export function SpendingSection() {
           ]}
         >
           <Ionicons name="calendar-outline" size={18} color={t.primary} />
-          <View style={{ flex: 1, marginHorizontal: 10 }}>
+          <View style={styles.periodText}>
             <Text
-              style={{ color: t.text, fontSize: 15, fontWeight: "700" }}
+              style={[styles.periodTitle, { color: t.text }]}
               numberOfLines={1}
             >
               {title}
             </Text>
             {subtitle && (
-              <Text style={{ color: t.muted, fontSize: 12 }} numberOfLines={1}>
+              <Text
+                style={[styles.periodSubtitle, { color: t.muted }]}
+                numberOfLines={1}
+              >
                 {subtitle}
               </Text>
             )}
@@ -181,14 +179,13 @@ export function SpendingSection() {
         drag={drag}
         style={[
           styles.card,
-          { backgroundColor: t.card, borderColor: t.border, marginBottom: 12 },
+          styles.chartCard,
+          { backgroundColor: t.card, borderColor: t.border },
         ]}
       >
         {chartType === "income-spending" && (
           <>
-            <Text style={{ color: t.muted, fontSize: 13, textAlign: "center" }}>
-              Net
-            </Text>
+            <Text style={[styles.netLabel, { color: t.muted }]}>Net</Text>
             <Text
               style={[styles.net, { color: net >= 0 ? t.income : t.spend }]}
               numberOfLines={1}
@@ -260,7 +257,7 @@ export function SpendingSection() {
       <ChartTypeSheet
         visible={sheet === "chart"}
         value={chartType}
-        onChange={setChartType}
+        onChange={(chart) => update({ analyticsChart: chart })}
         onClose={() => setSheet(null)}
       />
       <AccountFilterSheet
@@ -276,7 +273,7 @@ export function SpendingSection() {
 
 type ListRow = {
   key: string;
-  category: keyof typeof CATEGORY_COLORS;
+  category: Category;
   icon?: string | null;
   amount: number;
 };
@@ -304,15 +301,11 @@ function GroupList({
   return (
     <View style={styles.list}>
       <View style={styles.listHeader}>
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: "700" }}>
-          {title}
-        </Text>
-        <Text style={{ color, fontSize: 15, fontWeight: "700" }}>
-          {formatMoney(total)}
-        </Text>
+        <Text style={[styles.listTitle, { color: t.text }]}>{title}</Text>
+        <Text style={[styles.listTitle, { color }]}>{formatMoney(total)}</Text>
       </View>
       {rows.length === 0 && (
-        <Text style={{ color: t.muted, fontSize: 13, paddingVertical: 8 }}>
+        <Text style={[styles.empty, { color: t.muted }]}>
           Nothing in this period.
         </Text>
       )}
@@ -330,44 +323,31 @@ function GroupList({
             ) : (
               <View style={[styles.catDot, { backgroundColor: catColor }]} />
             )}
-            <View style={{ flex: 1, marginLeft: 10 }}>
+            <View style={styles.rowText}>
               <View style={styles.rowTop}>
                 <Text
-                  style={{
-                    color: t.text,
-                    fontSize: 15,
-                    flex: 1,
-                    marginRight: 8,
-                  }}
+                  style={[styles.rowLabel, { color: t.text }]}
                   numberOfLines={1}
                 >
                   {r.key}
                 </Text>
-                <Text
-                  style={{ color: t.text, fontSize: 15, fontWeight: "600" }}
-                >
+                <Text style={[styles.rowAmount, { color: t.text }]}>
                   {formatMoney(r.amount)}
                 </Text>
               </View>
               <View style={styles.rowBottom}>
                 <View style={[styles.track, { backgroundColor: t.border }]}>
                   <View
-                    style={{
-                      width: `${(r.amount / total) * 100}%`,
-                      height: 4,
-                      borderRadius: 2,
-                      backgroundColor: color,
-                    }}
+                    style={[
+                      styles.bar,
+                      {
+                        width: `${(r.amount / total) * 100}%`,
+                        backgroundColor: color,
+                      },
+                    ]}
                   />
                 </View>
-                <Text
-                  style={{
-                    color: t.muted,
-                    fontSize: 12,
-                    width: 38,
-                    textAlign: "right",
-                  }}
-                >
+                <Text style={[styles.share, { color: t.muted }]}>
                   {Math.round((r.amount / total) * 100)}%
                 </Text>
               </View>
@@ -377,7 +357,7 @@ function GroupList({
       })}
       {rows.length > COLLAPSED_ROWS && (
         <Pressable onPress={onToggle} style={styles.more}>
-          <Text style={{ color: t.primary, fontWeight: "600" }}>
+          <Text style={[styles.moreText, { color: t.primary }]}>
             {expanded ? "Show less" : `Show all ${rows.length}`}
           </Text>
         </Pressable>
@@ -398,7 +378,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
   },
+  periodText: { flex: 1, marginHorizontal: 10 },
+  periodTitle: { fontSize: 15, fontWeight: "700" },
+  periodSubtitle: { fontSize: 12 },
   card: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
+  chartCard: { marginBottom: 12 },
+  netLabel: { fontSize: 13, textAlign: "center" },
   net: {
     fontSize: 30,
     fontWeight: "800",
@@ -413,6 +398,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
+  listTitle: { fontSize: 15, fontWeight: "700" },
+  empty: { fontSize: 13, paddingVertical: 8 },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -420,8 +407,14 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   catDot: { width: 12, height: 12, borderRadius: 6, marginHorizontal: 11 },
+  rowText: { flex: 1, marginLeft: 10 },
   rowTop: { flexDirection: "row", justifyContent: "space-between" },
+  rowLabel: { flex: 1, fontSize: 15, marginRight: 8 },
+  rowAmount: { fontSize: 15, fontWeight: "600" },
   rowBottom: { flexDirection: "row", alignItems: "center", marginTop: 6 },
   track: { flex: 1, height: 4, borderRadius: 2, overflow: "hidden" },
+  bar: { height: 4, borderRadius: 2 },
+  share: { fontSize: 12, width: 38, textAlign: "right" },
   more: { alignItems: "center", paddingVertical: 10 },
+  moreText: { fontWeight: "600" },
 });

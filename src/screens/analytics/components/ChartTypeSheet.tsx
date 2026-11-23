@@ -1,36 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/BottomSheet";
+import { CHART_TYPE_OPTIONS, WHITE } from "@/constants";
 import { ChartType } from "@/constants/types";
 import { useTheme } from "@/hooks/useTheme";
-
-export const CHART_TYPES: {
-  type: ChartType;
-  title: string;
-  description: string;
-  icon: ComponentProps<typeof Ionicons>["name"];
-}[] = [
-  {
-    type: "income-spending",
-    title: "Income vs spending",
-    description: "Total money in and out for the period",
-    icon: "bar-chart-outline",
-  },
-  {
-    type: "spending-trend",
-    title: "Spending over time",
-    description: "How spending builds up, compared with the previous period",
-    icon: "trending-up-outline",
-  },
-  {
-    type: "categories",
-    title: "Spending by category",
-    description: "How your spending splits between categories",
-    icon: "pie-chart-outline",
-  },
-];
 
 type Props = {
   visible: boolean;
@@ -46,7 +20,7 @@ export function ChartTypeSheet({ visible, value, onChange, onClose }: Props) {
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={styles.body}>
         <Text style={[styles.heading, { color: t.text }]}>Chart</Text>
-        {CHART_TYPES.map((c) => {
+        {CHART_TYPE_OPTIONS.map((c) => {
           const on = c.type === value;
           return (
             <Pressable
@@ -59,10 +33,10 @@ export function ChartTypeSheet({ visible, value, onChange, onClose }: Props) {
               accessibilityState={{ selected: on }}
               style={[
                 styles.row,
+                on && styles.rowSelected,
                 {
                   backgroundColor: t.card,
                   borderColor: on ? t.primary : t.border,
-                  borderWidth: on ? 2 : 1,
                 },
               ]}
             >
@@ -72,19 +46,11 @@ export function ChartTypeSheet({ visible, value, onChange, onClose }: Props) {
                   { backgroundColor: on ? t.primary : t.bg },
                 ]}
               >
-                <Ionicons
-                  name={c.icon}
-                  size={22}
-                  color={on ? "#fff" : t.text}
-                />
+                <Ionicons name={c.icon} size={22} color={on ? WHITE : t.text} />
               </View>
-              <View style={{ flex: 1, marginHorizontal: 12 }}>
-                <Text
-                  style={{ color: t.text, fontSize: 16, fontWeight: "700" }}
-                >
-                  {c.title}
-                </Text>
-                <Text style={{ color: t.muted, fontSize: 13, marginTop: 2 }}>
+              <View style={styles.text}>
+                <Text style={[styles.title, { color: t.text }]}>{c.title}</Text>
+                <Text style={[styles.description, { color: t.muted }]}>
                   {c.description}
                 </Text>
               </View>
@@ -107,8 +73,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 14,
     borderRadius: 14,
+    borderWidth: 1,
     marginBottom: 10,
   },
+  rowSelected: { borderWidth: 2 },
+  text: { flex: 1, marginHorizontal: 12 },
+  title: { fontSize: 16, fontWeight: "700" },
+  description: { fontSize: 13, marginTop: 2 },
   icon: {
     width: 42,
     height: 42,

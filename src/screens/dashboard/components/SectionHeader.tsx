@@ -16,9 +16,7 @@ export function SectionHeader({ title, onSeeAll }: Props) {
           accessibilityRole="button"
           accessibilityLabel={`See all ${title}`}
         >
-          <Text style={{ color: t.primary, fontSize: 15, fontWeight: "600" }}>
-            See all
-          </Text>
+          <Text style={[styles.seeAll, { color: t.primary }]}>See all</Text>
         </Pressable>
       )}
     </View>
@@ -34,4 +32,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: { fontSize: 18, fontWeight: "700" },
+  seeAll: { fontSize: 15, fontWeight: "600" },
 });
