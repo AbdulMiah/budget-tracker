@@ -12,12 +12,12 @@ npx expo lint
 npx expo export --platform ios --output-dir <scratch dir>   # proves the bundle builds
 ```
 
-There are no unit tests. Logic has been checked with throwaway `npx tsx` scripts that import from `src/lib` using absolute paths (relative imports of `date-fns` fail from outside the repo). Nothing has been tested on a real device or simulator by Claude; the user tests on their phone.
+There are no unit tests. Logic has been checked with throwaway `npx tsx` scripts that import from `src/utils` using absolute paths (relative imports of `date-fns` fail from outside the repo). Nothing has been tested on a real device or simulator by Claude; the user tests on their phone.
 
 ## Stack
 
 - Expo SDK 58, React Native 0.88, React 19.3, TypeScript 6, Expo Router (routes in `src/app/`).
-- State: zustand with `persist` to AsyncStorage (`src/store/useStore.ts`).
+- State: TanStack Query v5 for server data and a React Context provider for settings (see Code structure). No zustand.
 - Dates: date-fns 4. Charts: custom `react-native-svg` everywhere except the net worth line, which uses `react-native-gifted-charts` (that's why `expo-linear-gradient` is installed).
 - Sensors and feedback: `expo-sensors` (DeviceMotion, for tilt to hide; iOS motion permission text is set in `app.json`) and `expo-haptics`.
 - `expo-secure-store` is installed and in the `app.json` plugins but not used yet. It was meant for backend auth tokens.
@@ -26,24 +26,36 @@ There are no unit tests. Logic has been checked with throwaway `npx tsx` scripts
 
 ## Data conventions
 
-- **Money is integer pence**, signed: negative is money out. Format only through `useMoney()` (`src/lib/useMoney.ts`), never `src/lib/format.ts` directly in UI, so hiding amounts works everywhere. The mask is `£***`.
+- **Money is integer pence**, signed: negative is money out. Format only through `useMoney()` (`src/hooks/useMoney.ts`), never `src/utils/format.ts` directly in UI, so hiding amounts works everywhere. The mask is `£***` (`AMOUNT_MASK`).
 - **Dates on transactions are `yyyy-MM-dd` strings.** Ranges (`DateRange`) are `Date`s at local midnight, inclusive at both ends.
 - **The `Transfer` category is excluded** from income, spending, budgets and recurring detection. Moving money between your own accounts and paying off a credit card are not spending.
 - **The `Zakat` category is excluded from the budget** (spent, committed and category allocations via `SPENDING_CATEGORIES`) but still counts as spending on Analytics. It's a yearly obligation tracked on the Zakat tab.
 - Accounts are `current` or `credit`. A credit card's balance is negative when money is owed.
-- **The budget month follows `budgetStartDay` (1–28)**, see `src/lib/budgetPeriod.ts`. With day 25, the "November" month is 25 Nov – 24 Dec. Month, quarter and year periods all follow the budget day; weeks run Monday to Sunday.
+- **The budget month follows `budgetStartDay` (1–28)**, see `src/utils/budget-period.ts`. With day 25, the "November" month is 25 Nov – 24 Dec. Month, quarter and year periods all follow the budget day; weeks run Monday to Sunday.
 - **Nothing in the future:** pickers disable future dates and ranges are capped at today.
 
 ## Data sources
 
-- `src/providers/`: a `BankProvider` interface with `mock.ts` (deterministic seeded demo data; IDs are built from content so they stay stable across reloads) and `remote.ts` (talks to a backend). `index.ts` picks remote when `EXPO_PUBLIC_API_URL` is set, otherwise mock (`usingDemoData`).
+- `src/services/`: `accounts.service.ts`, `transactions.service.ts` and `banks.service.ts` call the backend at `EXPO_PUBLIC_API_URL` (read in `config/env.ts`) through `utils/api-client.ts` (`apiGet`, `ApiError`). With no URL set, `IS_DEMO` is true and the services return `demo-data.ts` (deterministic seeded demo data; IDs are built from content so they stay stable across reloads). Connecting a bank opens the backend's consent URL with `Linking.openURL` and refetches.
 - Real bank access needs a server-side Open Banking aggregator (e.g. TrueLayer or GoCardless). Secrets never go in the app. The backend contract is in `README.md`. **No backend has been built yet.**
 
-## Store (`src/store/useStore.ts`)
+## Code structure (follows gms-platform's pos-app)
 
-Persisted: `budgetStartDay`, `txnOverrides` and `merchantOverrides` (the user's category/icon edits), `tiltToHide`, `amountsHidden`, `analyticsChart`, `budgetLimit` (pence or null; null means budgeting is off), `categoryBudgets`, and for zakat `zakatStart` (yyyy-MM-dd or null), `goldPrice`/`silverPrice` (pence per gram), `zakatPayments` (manual ones) and `zakatWealthOverrides` (keyed by Hijri year).
-Not persisted: `accounts`, `rawTransactions`, `transactions` (with overrides applied), `loading` and `error`.
-The `merge` step reapplies overrides on hydration, because a fetch can finish before storage loads.
+- `src/app/` holds thin route files only: each renders a screen from `src/screens/<feature>/index.tsx` (or another file there, such as `settings/BudgetDate.tsx`). Route URLs are unchanged.
+- Screen-only components live in `src/screens/<feature>/components/`. Shared ones stay in `src/components/`. One component per file, styles in `StyleSheet.create` (only theme colours inline).
+- `src/constants/`: `index.ts` (SPACING, RADIUS, WHITE, bank/category colours and names, CHART_TYPE_OPTIONS, FREQUENCY_LABELS, DEFAULT_SETTINGS...), `types.ts` (interfaces) and `theme.ts` (LIGHT_THEME/DARK_THEME; read with `useTheme()` from `src/hooks/useTheme.ts`).
+- `src/services/<x>.service.ts` exports an `xApi` object; `<x>.queries.ts` holds the query key factory and `useQuery`/`useMutation` hooks.
+- `src/providers/` holds Context providers rendered as `<Context value>`; `src/hooks/useX.ts` reads each with `use()` and throws outside its provider.
+- `src/utils/` holds pure logic plus `api-client`, `query-client` (retry 2, 5-minute staleTime, refetch on foreground via `focusManager`), `helpers` and `overrides`.
+- Imports: `@/` alias, third-party first, a blank line, then `@/` imports. Formatted with Prettier defaults plus `--trailing-comma es5` (`npx prettier@3 --trailing-comma es5 --write src`; not a dependency).
+
+## State
+
+**Settings** (`SettingsProvider`, read with `useSettings()` → `{ settings, update }`; `update` takes a patch or `(prev) => patch`). Saved to AsyncStorage under `settings`. On first launch after the refactor it migrates from the old zustand key `budget-settings` (`JSON.parse(raw).state`) and leaves that key in place. Each field is validated on load and falls back to `DEFAULT_SETTINGS`. Fields: `budgetStartDay`, `txnOverrides` and `merchantOverrides` (the user's category/icon edits), `tiltToHide`, `amountsHidden`, `analyticsChart`, `budgetLimit` (pence or null; null means budgeting is off), `categoryBudgets`, and for zakat `zakatStart` (yyyy-MM-dd or null), `goldPrice`/`silverPrice` (pence per gram), `zakatPayments` (manual ones) and `zakatWealthOverrides` (keyed by Hijri year).
+
+**Bank data** is TanStack Query: `useAccounts()` and `useTransactions()` (overrides are applied in `select`, so an edit never refetches). Screens usually read `useBankData()` (`{ accounts, transactions, isPending, error, refetch }`, with stable empty arrays) and `usePullToRefresh(refetch)`. Edits go through `useEditTransaction()` (`utils/overrides.ts`).
+
+Provider order in the root layout: QueryClientProvider > SettingsProvider (renders `LoadingScreen` until loaded).
 
 ## Screens
 
@@ -58,7 +70,7 @@ Routes live in `src/app/`. The root `_layout.tsx` is a Stack, and pushed pages g
     - Income & spending, Spending trend and By category (top 5 in the legend) each open Analytics with that chart selected, by setting `analyticsChart` in the store before navigating.
     - Budget (mini ring and daily allowance) opens the Budget tab.
   - Recent transactions (5, See all → `/transactions`) and upcoming recurring spending (5, See all → `/recurring`; spending only, no income).
-- **Analytics** (`(tabs)/analytics.tsx` → `components/SpendingSection.tsx`):
+- **Analytics** (`screens/analytics` → `screens/analytics/components/SpendingSection.tsx`):
   - Top row: a period button (opens `PeriodSheet`), the account filter (`AccountFilterSheet`) and the chart type (`ChartTypeSheet`).
   - Charts: income vs spending (`TotalsChart`, with net above), spending over time (`SpendingTrendChart`, cumulative, current vs previous period lined up by day index) and spending by category (`CategoryPieChart`).
   - Below the chart: a category/merchant breakdown list.
@@ -66,7 +78,7 @@ Routes live in `src/app/`. The root `_layout.tsx` is a Stack, and pushed pages g
 - **PeriodSheet**: chips for Weekly, Monthly, Quarterly, Yearly and Custom.
   - Each kind shows its picker inline: `DayCalendar` (week or range mode), `MonthGrid` (12 months with year arrows), `QuarterGrid` (2×2) or `YearGrid` (6 years per page).
   - The draft is applied on Apply and discarded on dismiss. The footer shows the selected range.
-  - Logic lives in `src/lib/spendingPeriods.ts`: `resolvePeriod`, `stepSelection` (a custom range steps by its own length) and `dailySpending`.
+  - Logic lives in `src/utils/spending-periods.ts`: `resolvePeriod`, `stepSelection` (a custom range steps by its own length) and `dailySpending`.
 - **Budget** (`(tabs)/budget.tsx`):
   - Donut of spent (red) and committed (amber, `t.committed`) against the limit, with what's left in the middle.
   - A daily allowance row and a line spelling out the formula.
@@ -88,29 +100,29 @@ Routes live in `src/app/`. The root `_layout.tsx` is a Stack, and pushed pages g
 
 ## Key logic
 
-- **Recurring detection** (`src/lib/recurring.ts`):
+- **Recurring detection** (`src/utils/recurring.ts`):
   - Groups transactions by normalised merchant and direction. Outgoing keys are the plain merchant name and income keys start with `in:`, so older links still work.
   - A group counts as recurring when the median interval classifies as weekly, fortnightly, monthly or yearly, at least 70% of intervals fall within tolerance, and amounts stay within 25% of the median.
   - Payments more than a period overdue are treated as stopped.
   - Each result carries `direction`, `accountId` (from the latest charge), `history` (newest first) and `monthlyCost`.
-- **Budget** (`src/lib/budget.ts`, `useBudgetStatus()` in `src/lib/useBudget.ts`):
+- **Budget** (`src/utils/budget.ts`, `useBudgetStatus()` in `src/hooks/useBudgetStatus.ts`):
   - spent = spending (no transfers) from the start of the budget month to today.
   - committed = recurring outgoing charges from today to the end of the month, one entry per occurrence. Weekly payments count every week; a charge already paid has moved its `nextDate` on, so it's never counted twice.
   - remaining = limit − spent − committed.
   - dailyAllowance = floor(remaining ÷ days left including today), or 0 when over.
-- **Zakat** (`src/lib/zakat.ts`, `useZakat()` in `src/lib/useZakat.ts`, calendar in `src/lib/hijri.ts`):
+- **Zakat** (`src/utils/zakat.ts`, `useZakat()` in `src/hooks/useZakat.ts`, calendar in `src/utils/hijri.ts`):
   - Zakat = 2.5% of net worth (all linked account balances) when it meets nisab: 87.48g gold or 612.36g silver, whichever is lower, as reaching either is enough. With no prices, nisab can't be checked and zakat is assumed due.
   - Years run from `zakatStart` to the same Hijri day each following year. A year is complete once its due date is reached (today counts). Completed years use net worth rebuilt for the due date (`netWorthOn`) unless overridden; the current year uses today's net worth. Past years are checked against today's metal prices.
   - Payments are manual entries plus transactions labelled `Zakat` (auto-matched by `/zakat|zakah/`). They're applied like paying off a debt: oldest year with zakat left first, overflow on the current year as an advance. Payments before `zakatStart` are ignored.
   - Hijri dates use Intl's `islamic-umalqura` when the engine supports it (checked once against a known date), otherwise the arithmetic calendar, which is within 2 days. Whether Hermes on iOS supports Umm al-Qura hasn't been checked; the settings page names the calendar in use.
-- **Net worth over time** is rebuilt by walking backwards from current balances through the transactions (`src/lib/analytics.ts`).
-- **Categorisation:** regex rules in `src/lib/categories.ts`. Remote data without a category is filled in the same way.
+- **Net worth over time** is rebuilt by walking backwards from current balances through the transactions (`src/utils/analytics.ts`).
+- **Categorisation:** regex rules in `src/utils/categories.ts`. Remote data without a category is filled in the same way.
 - **Hiding amounts:** the eye button (store `toggleAmountsHidden`, which also vibrates) or tilting the phone down. Each tilt toggles: it fires when the pitch drops below 20° after being above 35°, and starts unarmed so the phone lying flat at launch doesn't trigger it. Rotation is assumed to be in radians, which the Expo types don't state.
 
 ## Shared UI pieces
 
 `BottomSheet` (transparent modal, renders children only while visible so draft state resets), `IconButton` (square, with a count badge; `AccountFilterButton` wraps it), `InfoTip` (ⓘ icon; the bubble is placed with `measureInWindow` in a transparent modal) and `SectionTitle` (uppercase section label with an optional `info` tip), `Chip`, `DayCalendar` (week, range or day mode), `HijriDatePicker`, `NisabCard`, `ZakatPaymentRow`, `DonutRing` (segmented ring used by the budget and category charts), `MoneyInput` (pounds in, pence out, commits on end editing; `parsePounds` for forms that read on submit), `RecurringRow`, `TransactionRow`, `SectionHeader`, `EyeButton`.
-Theme tokens live in `components/theme.ts` (light and dark): bg, card, text, muted, border, primary, income, spend, committed.
+Theme tokens live in `constants/theme.ts` (light and dark): bg, card, text, muted, border, primary, income, spend, committed.
 
 ## Decisions and user preferences
 

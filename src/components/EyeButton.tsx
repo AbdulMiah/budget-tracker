@@ -1,21 +1,25 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Pressable } from 'react-native';
-import { useStore } from '../store/useStore';
-import { useTheme } from './theme';
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable } from "react-native";
+
+import { useAmountsHidden } from "@/hooks/useAmountsHidden";
+import { useTheme } from "@/hooks/useTheme";
 
 /** Shows or hides every amount in the app. */
 export function EyeButton() {
   const t = useTheme();
-  const hidden = useStore((s) => s.amountsHidden);
-  const toggle = useStore((s) => s.toggleAmountsHidden);
+  const { amountsHidden, toggleAmountsHidden } = useAmountsHidden();
   return (
     <Pressable
-      onPress={toggle}
+      onPress={toggleAmountsHidden}
       hitSlop={10}
       accessibilityRole="button"
-      accessibilityLabel={hidden ? 'Show amounts' : 'Hide amounts'}
+      accessibilityLabel={amountsHidden ? "Show amounts" : "Hide amounts"}
     >
-      <Ionicons name={hidden ? 'eye-off-outline' : 'eye-outline'} size={24} color={t.text} />
+      <Ionicons
+        name={amountsHidden ? "eye-off-outline" : "eye-outline"}
+        size={24}
+        color={t.text}
+      />
     </Pressable>
   );
 }
