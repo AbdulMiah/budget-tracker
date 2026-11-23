@@ -4,14 +4,14 @@ import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Account } from "@/constants/types";
+import { useBankData } from "@/hooks/useBankData";
 import { useTheme } from "@/hooks/useTheme";
 import { AccountList } from "@/screens/net-worth/components/AccountList";
 import { NetWorthCard } from "@/screens/net-worth/components/NetWorthCard";
-import { useStore } from "@/store/useStore";
 
 export function NetWorthScreen() {
   const t = useTheme();
-  const accounts = useStore((s) => s.accounts);
+  const { accounts } = useBankData();
   // Locked while dragging across the line chart so a slightly vertical drag doesn't scroll the page.
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const showTransactions = (a: Account) =>

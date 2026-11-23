@@ -80,7 +80,10 @@ function Body({
           hitSlop={12}
         >
           <Text
-            style={{ color: draft.size ? t.primary : t.muted, fontSize: 16 }}
+            style={[
+              styles.headerButton,
+              { color: draft.size ? t.primary : t.muted },
+            ]}
           >
             Clear
           </Text>
@@ -90,7 +93,9 @@ function Body({
           {draft.size ? ` (${draft.size})` : ""}
         </Text>
         <Pressable onPress={done} hitSlop={12}>
-          <Text style={{ color: t.primary, fontSize: 16, fontWeight: "700" }}>
+          <Text
+            style={[styles.headerButton, styles.done, { color: t.primary }]}
+          >
             Done
           </Text>
         </Pressable>
@@ -122,12 +127,11 @@ function Body({
               style={[styles.row, { borderBottomColor: t.border }]}
             >
               <Text
-                style={{
-                  color: t.text,
-                  fontSize: 16,
-                  fontWeight: on ? "700" : "400",
-                  flex: 1,
-                }}
+                style={[
+                  styles.option,
+                  on && styles.optionSelected,
+                  { color: t.text },
+                ]}
               >
                 {item}
               </Text>
@@ -146,6 +150,10 @@ function Body({
 }
 
 const styles = StyleSheet.create({
+  headerButton: { fontSize: 16 },
+  done: { fontWeight: "700" },
+  option: { flex: 1, fontSize: 16, fontWeight: "400" },
+  optionSelected: { fontWeight: "700" },
   sheet: { flex: 1 },
   header: {
     flexDirection: "row",

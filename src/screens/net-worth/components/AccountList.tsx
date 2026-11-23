@@ -54,32 +54,23 @@ export function AccountList({
               accessibilityHint={
                 onPressAccount ? `Shows ${a.name} transactions` : undefined
               }
-              style={({ pressed }) => [
-                styles.row,
-                { opacity: pressed ? 0.6 : 1 },
-              ]}
+              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
             >
               <View
                 style={[styles.dot, { backgroundColor: BANK_COLORS[a.bank] }]}
               />
-              <View style={{ flex: 1, marginRight: 12 }}>
+              <View style={styles.text}>
                 <Text
-                  style={{ color: t.text, fontSize: 16, fontWeight: "600" }}
+                  style={[styles.name, { color: t.text }]}
                   numberOfLines={1}
                 >
                   {a.name}
                 </Text>
-                <Text style={{ color: t.muted, fontSize: 13 }}>
+                <Text style={[styles.bank, { color: t.muted }]}>
                   {BANK_NAMES[a.bank]}
                 </Text>
               </View>
-              <Text
-                style={{
-                  color: balanceColor(a.balance),
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}
-              >
+              <Text style={[styles.name, { color: balanceColor(a.balance) }]}>
                 {formatMoney(a.balance)}
               </Text>
               {onPressAccount && (
@@ -87,7 +78,7 @@ export function AccountList({
                   name="chevron-forward"
                   size={18}
                   color={t.muted}
-                  style={{ marginLeft: 8 }}
+                  style={styles.chevron}
                 />
               )}
             </Pressable>
@@ -118,6 +109,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  pressed: { opacity: 0.6 },
+  text: { flex: 1, marginRight: 12 },
+  name: { fontSize: 16, fontWeight: "600" },
+  bank: { fontSize: 13 },
+  chevron: { marginLeft: 8 },
   dot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 40 },
   empty: { padding: 16, textAlign: "center" },

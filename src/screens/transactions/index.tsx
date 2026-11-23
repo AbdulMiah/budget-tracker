@@ -20,16 +20,20 @@ import { Chip } from "@/components/Chip";
 import { TransactionEditModal } from "@/components/TransactionEditModal";
 import { TransactionRow } from "@/components/TransactionRow";
 import { Category, CATEGORIES, Transaction } from "@/constants/types";
+import { useBankData } from "@/hooks/useBankData";
+import { useEditTransaction } from "@/hooks/useEditTransaction";
 import { useMoney } from "@/hooks/useMoney";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useTheme } from "@/hooks/useTheme";
 import { PickerModal } from "@/screens/transactions/components/PickerModal";
-import { useStore } from "@/store/useStore";
+import { filterLabel } from "@/utils/helpers";
 
 export function TransactionsScreen() {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const { accounts, transactions, loading, error, load, setOverride } =
-    useStore();
+  const { accounts, transactions, isPending, error, refetch } = useBankData();
+  const editTransaction = useEditTransaction();
+  const { isRefreshing, onRefresh } = usePullToRefresh(refetch);
 
   // Opened from an account on the Net worth page, the list starts filtered to that account.
   const { account } = useLocalSearchParams<{ account?: string }>();
@@ -100,8 +104,8 @@ export function TransactionsScreen() {
         stickySectionHeadersEnabled
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={load}
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
             tintColor={t.muted}
           />
         }
@@ -155,18 +159,18 @@ export function TransactionsScreen() {
                   }}
                   style={styles.clear}
                 >
-                  <Text style={{ color: t.primary, fontWeight: "600" }}>
+                  <Text style={[styles.clearText, { color: t.primary }]}>
                     Clear
                   </Text>
                 </Pressable>
               )}
             </ScrollView>
             {error && (
-              <Text style={[styles.error, { color: t.spend }]}>{error}</Text>
+              <Text style={[styles.error, { color: t.spend }]}>
+                {error.message}
+              </Text>
             )}
-            {loading && transactions.length === 0 && (
-              <ActivityIndicator style={{ marginTop: 24 }} />
-            )}
+            {isPending && <ActivityIndicator style={styles.spinner} />}
           </View>
         }
         renderSectionHeader={({ section }) => (
@@ -192,13 +196,13 @@ export function TransactionsScreen() {
           />
         )}
         ListEmptyComponent={
-          !loading ? (
+          !isPending ? (
             <Text style={[styles.empty, { color: t.muted }]}>
               No transactions match these filters.
             </Text>
           ) : undefined
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={styles.list}
       />
 
       <PickerModal
@@ -227,18 +231,11 @@ export function TransactionsScreen() {
       />
       <TransactionEditModal
         txn={editing}
-        onSave={(txn, override, all) => setOverride(txn.id, override, all)}
+        onSave={editTransaction}
         onClose={() => setEditing(null)}
       />
     </SafeAreaView>
   );
-}
-
-/** "Category", "Category: Groceries", or "Categories: 3". */
-function filterLabel(singular: string, plural: string, values: string[]) {
-  if (values.length === 0) return singular;
-  if (values.length === 1) return `${singular}: ${values[0]}`;
-  return `${plural}: ${values.length}`;
 }
 
 const styles = StyleSheet.create({
@@ -253,7 +250,10 @@ const styles = StyleSheet.create({
   },
   chips: { paddingHorizontal: 16, paddingTop: 12, alignItems: "center" },
   clear: { paddingHorizontal: 8, paddingVertical: 8 },
+  clearText: { fontWeight: "600" },
   error: { margin: 16 },
+  spinner: { marginTop: 24 },
+  list: { paddingBottom: 24 },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

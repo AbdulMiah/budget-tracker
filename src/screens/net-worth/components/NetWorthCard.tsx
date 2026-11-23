@@ -4,9 +4,9 @@ import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 
 import { Chip } from "@/components/Chip";
+import { useBankData } from "@/hooks/useBankData";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
 import {
   downsample,
   netWorthSeries,
@@ -31,7 +31,7 @@ export function NetWorthCard({ onScrubbingChange }: Props) {
   const t = useTheme();
   const { formatAxis, formatMoney, formatSigned } = useMoney();
   const { width } = useWindowDimensions();
-  const { accounts, transactions } = useStore();
+  const { accounts, transactions } = useBankData();
   const [range, setRange] = useState<RangeKey>("1M");
 
   const today = useMemo(() => new Date(), []);
@@ -89,14 +89,10 @@ export function NetWorthCard({ onScrubbingChange }: Props) {
           />
         ))}
       </View>
-      <Text style={{ color: t.muted, fontSize: 13 }}>Net worth</Text>
+      <Text style={[styles.label, { color: t.muted }]}>Net worth</Text>
       <Text style={[styles.big, { color: t.text }]}>{formatMoney(last)}</Text>
       <Text
-        style={{
-          color: change >= 0 ? t.income : t.spend,
-          fontWeight: "600",
-          marginBottom: 12,
-        }}
+        style={[styles.change, { color: change >= 0 ? t.income : t.spend }]}
       >
         {formatSigned(change)} over{" "}
         {range === "YTD" ? "the year so far" : range}
@@ -148,25 +144,18 @@ export function NetWorthCard({ onScrubbingChange }: Props) {
           ) => (
             <View style={[styles.tooltip, { backgroundColor: t.text }]}>
               {points[index] && (
-                <Text style={{ color: t.bg, fontSize: 12, opacity: 0.75 }}>
+                <Text style={[styles.tooltipDate, { color: t.bg }]}>
                   {format(points[index].date, "EEE d MMM yyyy")}
                 </Text>
               )}
-              <Text style={{ color: t.bg, fontWeight: "700" }}>
+              <Text style={[styles.tooltipValue, { color: t.bg }]}>
                 {formatMoney(Math.round((items[0].value + axis.axisMin) * 100))}
               </Text>
             </View>
           ),
         }}
       />
-      <View
-        style={{
-          marginLeft: Y_AXIS_WIDTH,
-          width: chartWidth,
-          height: 16,
-          marginTop: 6,
-        }}
-      >
+      <View style={[styles.xAxis, { width: chartWidth }]}>
         {ticks.map((idx, i) => {
           const frac = idx / (points.length - 1);
           const first = i === 0;
@@ -208,7 +197,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: "hidden",
   },
+  label: { fontSize: 13 },
   big: { fontSize: 32, fontWeight: "800", marginTop: 2 },
+  change: { fontWeight: "600", marginBottom: 12 },
+  xAxis: { marginLeft: Y_AXIS_WIDTH, height: 16, marginTop: 6 },
   xLabel: { position: "absolute", top: 0, fontSize: 10 },
   tooltip: {
     paddingHorizontal: 10,
@@ -216,4 +208,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+  tooltipDate: { fontSize: 12, opacity: 0.75 },
+  tooltipValue: { fontWeight: "700" },
 });

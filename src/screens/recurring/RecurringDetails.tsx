@@ -1,40 +1,23 @@
-import {
-  differenceInCalendarDays,
-  format,
-  parseISO,
-  startOfDay,
-} from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { ReactNode, useMemo } from "react";
+import { useMemo } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BANK_COLORS, CATEGORY_COLORS } from "@/constants";
-import { Account } from "@/constants/types";
+import { CATEGORY_COLORS, FREQUENCY_LABELS } from "@/constants";
+import { useBankData } from "@/hooks/useBankData";
 import { useMoney } from "@/hooks/useMoney";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
-import { detectRecurring, Frequency } from "@/utils/recurring";
-
-const EVERY: Record<Frequency, string> = {
-  Weekly: "Every week",
-  Fortnightly: "Every 2 weeks",
-  Monthly: "Every month",
-  Yearly: "Every year",
-};
-
-function dueIn(date: Date) {
-  const days = differenceInCalendarDays(date, startOfDay(new Date()));
-  if (days <= 0) return "Due today";
-  if (days === 1) return "Due tomorrow";
-  return `Due in ${days} days`;
-}
+import { AccountLabel } from "@/screens/recurring/components/AccountLabel";
+import { Detail } from "@/screens/recurring/components/Detail";
+import { dueIn } from "@/utils/helpers";
+import { detectRecurring } from "@/utils/recurring";
 
 export function RecurringDetailsScreen() {
   const t = useTheme();
   const { formatMoney, formatSigned } = useMoney();
   const { key } = useLocalSearchParams<{ key: string }>();
-  const { accounts, transactions } = useStore();
+  const { accounts, transactions } = useBankData();
   const accountById = useMemo(
     () => new Map(accounts.map((a) => [a.id, a])),
     [accounts]
@@ -63,6 +46,7 @@ export function RecurringDetailsScreen() {
   const isIncome = item.direction === "in";
   const paid = item.history.reduce((sum, x) => sum + Math.abs(x.amount), 0);
   const first = item.history[item.history.length - 1];
+  const cardColors = { backgroundColor: t.card, borderColor: t.border };
 
   return (
     <SafeAreaView
@@ -76,15 +60,9 @@ export function RecurringDetailsScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View>
-            <View
-              style={[
-                styles.card,
-                styles.hero,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, styles.hero, cardColors]}>
               <View style={[styles.badge, { backgroundColor: color + "26" }]}>
-                <Text style={{ color, fontWeight: "800", fontSize: 24 }}>
+                <Text style={[styles.initial, { color }]}>
                   {item.merchant.charAt(0)}
                 </Text>
               </View>
@@ -94,7 +72,7 @@ export function RecurringDetailsScreen() {
               >
                 {item.merchant}
               </Text>
-              <Text style={{ color: t.muted, fontSize: 14 }}>
+              <Text style={[styles.meta, { color: t.muted }]}>
                 {item.category}
               </Text>
               <Text
@@ -104,50 +82,30 @@ export function RecurringDetailsScreen() {
                   ? formatSigned(item.amount)
                   : formatMoney(item.amount)}
               </Text>
-              <Text style={{ color: t.muted, fontSize: 14 }}>
-                {EVERY[item.frequency]}
+              <Text style={[styles.meta, { color: t.muted }]}>
+                {FREQUENCY_LABELS[item.frequency]}
               </Text>
             </View>
 
-            <View
-              style={[
-                styles.card,
-                styles.next,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: t.muted, fontSize: 13 }}>
+            <View style={[styles.card, styles.next, cardColors]}>
+              <View style={styles.fill}>
+                <Text style={[styles.label, { color: t.muted }]}>
                   Next payment
                 </Text>
-                <Text
-                  style={{
-                    color: t.text,
-                    fontSize: 18,
-                    fontWeight: "700",
-                    marginTop: 2,
-                  }}
-                >
+                <Text style={[styles.nextDate, { color: t.text }]}>
                   {format(item.nextDate, "EEEE d MMMM")}
                 </Text>
               </View>
               <View
                 style={[styles.pill, { backgroundColor: t.primary + "1f" }]}
               >
-                <Text
-                  style={{ color: t.primary, fontSize: 13, fontWeight: "700" }}
-                >
+                <Text style={[styles.pillText, { color: t.primary }]}>
                   {dueIn(item.nextDate)}
                 </Text>
               </View>
             </View>
 
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, cardColors]}>
               <Detail label="Frequency">{item.frequency}</Detail>
               <Detail label="Account">
                 <AccountLabel account={account} />
@@ -163,7 +121,7 @@ export function RecurringDetailsScreen() {
               <Detail label={isIncome ? "Received so far" : "Paid so far"} last>
                 {formatMoney(paid)}
               </Detail>
-              <Text style={{ color: t.muted, fontSize: 12, marginTop: 8 }}>
+              <Text style={[styles.count, { color: t.muted }]}>
                 {item.history.length} payments since{" "}
                 {format(parseISO(first.date), "d MMM yyyy")}
               </Text>
@@ -181,23 +139,22 @@ export function RecurringDetailsScreen() {
               { backgroundColor: t.card, borderColor: t.border },
               index === 0 && styles.firstRow,
               index === item.history.length - 1 && styles.lastRow,
-              index > 0 && { borderTopWidth: StyleSheet.hairlineWidth },
+              index > 0 && styles.dividedRow,
             ]}
           >
-            <View style={{ flex: 1, marginRight: 12 }}>
-              <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>
+            <View style={styles.historyText}>
+              <Text style={[styles.historyValue, { color: t.text }]}>
                 {format(parseISO(txn.date), "EEE d MMM yyyy")}
               </Text>
-              <View style={{ marginTop: 2 }}>
+              <View style={styles.historyAccount}>
                 <AccountLabel account={accountById.get(txn.accountId)} />
               </View>
             </View>
             <Text
-              style={{
-                color: isIncome ? t.income : t.text,
-                fontSize: 15,
-                fontWeight: "600",
-              }}
+              style={[
+                styles.historyValue,
+                { color: isIncome ? t.income : t.text },
+              ]}
             >
               {formatSigned(txn.amount)}
             </Text>
@@ -205,56 +162,6 @@ export function RecurringDetailsScreen() {
         )}
       />
     </SafeAreaView>
-  );
-}
-
-function Detail({
-  label,
-  last,
-  children,
-}: {
-  label: string;
-  last?: boolean;
-  children: ReactNode;
-}) {
-  const t = useTheme();
-  return (
-    <View
-      style={[
-        styles.detail,
-        !last && {
-          borderBottomColor: t.border,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        },
-      ]}
-    >
-      <Text style={{ color: t.muted, fontSize: 15 }}>{label}</Text>
-      {typeof children === "string" ? (
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
-    </View>
-  );
-}
-
-function AccountLabel({ account }: { account?: Account }) {
-  const t = useTheme();
-  if (!account)
-    return (
-      <Text style={{ color: t.muted, fontSize: 13 }}>Unknown account</Text>
-    );
-  return (
-    <View style={styles.account}>
-      <View
-        style={[styles.bankDot, { backgroundColor: BANK_COLORS[account.bank] }]}
-      />
-      <Text style={{ color: t.muted, fontSize: 13 }} numberOfLines={1}>
-        {account.name}
-      </Text>
-    </View>
   );
 }
 
@@ -271,23 +178,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 10,
   },
+  initial: { fontWeight: "800", fontSize: 24 },
   merchant: { fontSize: 20, fontWeight: "700" },
+  meta: { fontSize: 14 },
   amount: { fontSize: 32, fontWeight: "800", marginTop: 10 },
   next: { flexDirection: "row", alignItems: "center" },
+  fill: { flex: 1 },
+  label: { fontSize: 13 },
+  nextDate: { fontSize: 18, fontWeight: "700", marginTop: 2 },
   pill: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
     marginLeft: 12,
   },
-  detail: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  account: { flexDirection: "row", alignItems: "center" },
-  bankDot: { width: 7, height: 7, borderRadius: 4, marginRight: 4 },
+  pillText: { fontSize: 13, fontWeight: "700" },
+  count: { fontSize: 12, marginTop: 8 },
   section: {
     fontSize: 12,
     fontWeight: "700",
@@ -303,6 +209,10 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderRightWidth: 1,
   },
+  dividedRow: { borderTopWidth: StyleSheet.hairlineWidth },
+  historyText: { flex: 1, marginRight: 12 },
+  historyValue: { fontSize: 15, fontWeight: "600" },
+  historyAccount: { marginTop: 2 },
   firstRow: {
     borderTopWidth: 1,
     borderTopLeftRadius: 16,

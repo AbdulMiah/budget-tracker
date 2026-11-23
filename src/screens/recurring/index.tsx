@@ -14,9 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip } from "@/components/Chip";
 import { RecurringRow } from "@/components/RecurringRow";
+import { useBankData } from "@/hooks/useBankData";
 import { useMoney } from "@/hooks/useMoney";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
 import {
   detectRecurring,
   Direction,
@@ -34,7 +35,8 @@ const SHOW: { value: Show; label: string }[] = [
 export function RecurringScreen() {
   const t = useTheme();
   const { formatMoney, formatSigned } = useMoney();
-  const { accounts, transactions, loading, load } = useStore();
+  const { accounts, transactions, isPending, refetch } = useBankData();
+  const { isRefreshing, onRefresh } = usePullToRefresh(refetch);
   const accountById = useMemo(
     () => new Map(accounts.map((a) => [a.id, a])),
     [accounts]
@@ -96,8 +98,8 @@ export function RecurringScreen() {
         stickySectionHeadersEnabled
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={load}
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
             tintColor={t.muted}
           />
         }
@@ -142,15 +144,15 @@ export function RecurringScreen() {
               {show === "all" ? (
                 <View style={styles.split}>
                   <View>
-                    <Text style={{ color: t.muted, fontSize: 13 }}>
+                    <Text style={[styles.label, { color: t.muted }]}>
                       Out each month
                     </Text>
                     <Text style={[styles.mid, { color: t.text }]}>
                       {formatMoney(monthlyOut)}
                     </Text>
                   </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Text style={{ color: t.muted, fontSize: 13 }}>
+                  <View style={styles.right}>
+                    <Text style={[styles.label, { color: t.muted }]}>
                       In each month
                     </Text>
                     <Text style={[styles.mid, { color: t.income }]}>
@@ -160,7 +162,7 @@ export function RecurringScreen() {
                 </View>
               ) : (
                 <>
-                  <Text style={{ color: t.muted, fontSize: 13 }}>
+                  <Text style={[styles.label, { color: t.muted }]}>
                     {show === "out"
                       ? "Committed each month"
                       : "Expected each month"}
@@ -175,7 +177,7 @@ export function RecurringScreen() {
                   </Text>
                 </>
               )}
-              <Text style={{ color: t.muted, fontSize: 13 }}>
+              <Text style={[styles.label, { color: t.muted }]}>
                 {shown.length} recurring{" "}
                 {show === "in" ? "income payments" : "payments"}, detected
                 automatically across all accounts
@@ -207,7 +209,7 @@ export function RecurringScreen() {
           <View style={[styles.divider, { backgroundColor: t.border }]} />
         )}
         ListEmptyComponent={
-          !loading ? (
+          !isPending ? (
             <Text style={[styles.empty, { color: t.muted }]}>
               {search
                 ? "No recurring payments match your search."
@@ -215,7 +217,7 @@ export function RecurringScreen() {
             </Text>
           ) : undefined
         }
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
       />
     </SafeAreaView>
@@ -233,6 +235,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   chips: { paddingHorizontal: 16, paddingTop: 12 },
+  label: { fontSize: 13 },
+  right: { alignItems: "flex-end" },
   split: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -258,4 +262,5 @@ const styles = StyleSheet.create({
   row: { paddingHorizontal: 16, paddingVertical: 12 },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 68 },
   empty: { textAlign: "center", marginTop: 40 },
+  list: { paddingBottom: 24 },
 });
