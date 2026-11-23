@@ -1,10 +1,11 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import type { ComponentProps } from "react";
 
 import { useTheme } from "@/hooks/useTheme";
 
-type IconName = React.ComponentProps<typeof Ionicons>["name"];
-type MciName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+type IconName = ComponentProps<typeof Ionicons>["name"];
+type MciName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 // Most icons are Ionicons; `mci` picks one from MaterialCommunityIcons, which has a hand holding a coin.
 const TABS: { name: string; title: string; icon?: IconName; mci?: MciName }[] =

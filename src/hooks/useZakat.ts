@@ -1,7 +1,8 @@
 import { differenceInCalendarDays, parseISO, startOfDay } from "date-fns";
 import { useMemo } from "react";
 
-import { useStore } from "@/store/useStore";
+import { useBankData } from "@/hooks/useBankData";
+import { useSettings } from "@/hooks/useSettings";
 import {
   meetsNisab,
   Nisab,
@@ -34,15 +35,15 @@ export type ZakatStatus = {
 };
 
 export function useZakat(): ZakatStatus {
+  const { accounts, transactions } = useBankData();
+  const { settings } = useSettings();
   const {
-    accounts,
-    transactions,
     zakatStart,
     goldPrice,
     silverPrice,
     zakatPayments: manual,
     zakatWealthOverrides,
-  } = useStore();
+  } = settings;
   return useMemo(() => {
     const today = startOfDay(new Date());
     const netWorth = accounts.reduce((sum, a) => sum + a.balance, 0);

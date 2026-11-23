@@ -1,7 +1,8 @@
 import { DeviceMotion } from "expo-sensors";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-import { useStore } from "@/store/useStore";
+import { useAmountsHidden } from "@/hooks/useAmountsHidden";
+import { useSettings } from "@/hooks/useSettings";
 
 // rotation.beta is the tilt around the phone's horizontal axis in radians:
 // about π/2 held upright, 0 lying flat face up, negative once the top dips below the bottom.
@@ -12,7 +13,16 @@ const UPRIGHT = (35 * Math.PI) / 180;
 
 /** While enabled in settings, each tilt of the phone down toggles hidden amounts. */
 export function useTiltToHide() {
-  const enabled = useStore((s) => s.tiltToHide);
+  const { settings } = useSettings();
+  const enabled = settings.tiltToHide;
+  const { toggleAmountsHidden } = useAmountsHidden();
+
+  // The listener reads the latest toggle through a ref, so it isn't
+  // resubscribed (and disarmed) every time amounts are shown or hidden.
+  const toggleRef = useRef(toggleAmountsHidden);
+  useEffect(() => {
+    toggleRef.current = toggleAmountsHidden;
+  });
 
   useEffect(() => {
     if (!enabled) return;
@@ -28,7 +38,7 @@ export function useTiltToHide() {
         if (rotation.beta > UPRIGHT) armed = true;
         else if (armed && rotation.beta < TILTED) {
           armed = false;
-          useStore.getState().toggleAmountsHidden();
+          toggleRef.current();
         }
       });
     });
