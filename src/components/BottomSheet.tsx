@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   visible: boolean;

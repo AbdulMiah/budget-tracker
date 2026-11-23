@@ -3,15 +3,19 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InfoTip } from "@/components/InfoTip";
-import { useTheme } from "@/constants/theme";
+import { BUDGET_START_DAY_RANGE } from "@/constants";
+import { useTheme } from "@/hooks/useTheme";
 import { useStore } from "@/store/useStore";
-import { MAX_BUDGET_DAY, periodEnd, periodStart } from "@/utils/budget-period";
+import { periodEnd, periodStart } from "@/utils/budget-period";
 
 export function BudgetDateScreen() {
   const t = useTheme();
   const { budgetStartDay, setBudgetStartDay } = useStore();
   const start = periodStart(new Date(), budgetStartDay);
-  const days = Array.from({ length: MAX_BUDGET_DAY }, (_, i) => i + 1);
+  const days = Array.from(
+    { length: BUDGET_START_DAY_RANGE.max },
+    (_, i) => i + 1
+  );
 
   return (
     <SafeAreaView

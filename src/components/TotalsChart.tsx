@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 
 // Keeps a tiny total visible as a sliver rather than nothing.
 const MIN_BAR = 4;

@@ -8,10 +8,10 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { BANK_COLORS, useTheme } from "@/constants/theme";
+import { BANK_COLORS, CATEGORY_COLORS } from "@/constants";
 import { Account } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
-import { CATEGORY_COLORS } from "@/utils/categories";
+import { useTheme } from "@/hooks/useTheme";
 import { RecurringPayment } from "@/utils/recurring";
 
 type Props = {

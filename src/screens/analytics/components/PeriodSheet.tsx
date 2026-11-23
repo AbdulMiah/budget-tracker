@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Chip } from "@/components/Chip";
 import { DayCalendar } from "@/components/DayCalendar";
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import {
   MonthGrid,
   QuarterGrid,

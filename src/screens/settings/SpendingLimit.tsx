@@ -3,11 +3,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SectionTitle } from "@/components/InfoTip";
 import { MoneyInput } from "@/components/MoneyInput";
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { SPENDING_CATEGORIES } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { useStore } from "@/store/useStore";
-import { CATEGORY_COLORS } from "@/utils/categories";
 
 export function SpendingLimitScreen() {
   const t = useTheme();

@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EyeButton } from "@/components/EyeButton";
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { SpendingSection } from "@/screens/analytics/components/SpendingSection";
 
 export function AnalyticsScreen() {

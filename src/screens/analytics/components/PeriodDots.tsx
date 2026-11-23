@@ -1,6 +1,6 @@
 import { Animated, StyleSheet, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 const DOT = 7;
 const PILL = 18;

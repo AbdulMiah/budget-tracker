@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { DonutRing } from "@/components/DonutRing";
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { Category } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
-import { CATEGORY_COLORS } from "@/utils/categories";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   /** Spending per category, largest first. */

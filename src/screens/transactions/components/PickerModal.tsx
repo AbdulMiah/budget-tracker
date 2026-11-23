@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   visible: boolean;

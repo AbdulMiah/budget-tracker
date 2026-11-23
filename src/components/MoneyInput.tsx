@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   /** Pence, or null for empty. */

@@ -18,8 +18,9 @@ import { IconButton } from "@/components/IconButton";
 import { SpendingTrendChart } from "@/components/SpendingTrendChart";
 import { TotalsChart } from "@/components/TotalsChart";
 import { TransactionAvatar } from "@/components/TransactionRow";
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import {
   CHART_TYPES,
   ChartTypeSheet,
@@ -28,7 +29,6 @@ import { PeriodDots } from "@/screens/analytics/components/PeriodDots";
 import { PeriodSheet } from "@/screens/analytics/components/PeriodSheet";
 import { SwipeablePeriod } from "@/screens/analytics/components/SwipeablePeriod";
 import { useStore } from "@/store/useStore";
-import { CATEGORY_COLORS } from "@/utils/categories";
 import {
   dailySpending,
   GroupBy,

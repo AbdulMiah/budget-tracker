@@ -13,11 +13,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IconName, TransactionAvatar } from "@/components/TransactionRow";
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { CATEGORIES, Category, Transaction } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { Override } from "@/store/useStore";
-import { CATEGORY_COLORS } from "@/utils/categories";
 
 const ICONS: IconName[] = [
   "cart",

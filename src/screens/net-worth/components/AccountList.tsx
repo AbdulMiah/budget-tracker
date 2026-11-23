@@ -2,9 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { Fragment } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { BANK_COLORS, BANK_NAMES, useTheme } from "@/constants/theme";
+import { BANK_COLORS, BANK_NAMES } from "@/constants";
 import { Account } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   title: string;

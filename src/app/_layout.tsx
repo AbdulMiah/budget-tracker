@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { EyeButton } from "@/components/EyeButton";
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { useTiltToHide } from "@/hooks/useTiltToHide";
 import { useStore } from "@/store/useStore";
 

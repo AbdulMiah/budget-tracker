@@ -13,7 +13,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { DayCalendar } from "@/components/DayCalendar";
 import { InfoTip } from "@/components/InfoTip";
 import { parsePounds } from "@/components/MoneyInput";
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { useStore } from "@/store/useStore";
 
 type Props = { visible: boolean; onClose: () => void };

@@ -19,9 +19,9 @@ import { AccountFilterSheet } from "@/components/AccountFilterSheet";
 import { Chip } from "@/components/Chip";
 import { TransactionEditModal } from "@/components/TransactionEditModal";
 import { TransactionRow } from "@/components/TransactionRow";
-import { useTheme } from "@/constants/theme";
 import { Category, CATEGORIES, Transaction } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { PickerModal } from "@/screens/transactions/components/PickerModal";
 import { useStore } from "@/store/useStore";
 

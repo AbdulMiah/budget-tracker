@@ -3,10 +3,10 @@ import { format } from "date-fns";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { useZakat } from "@/hooks/useZakat";
-import { CATEGORY_COLORS } from "@/utils/categories";
 import { formatHijri } from "@/utils/hijri";
 
 /** Dashboard preview of the Zakat tab: this year's progress and due date, or the nisab status before tracking. */

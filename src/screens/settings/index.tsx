@@ -14,9 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EyeButton } from "@/components/EyeButton";
 import { InfoTip } from "@/components/InfoTip";
-import { BANK_COLORS, BANK_NAMES, useTheme } from "@/constants/theme";
+import { BANK_COLORS, BANK_NAMES } from "@/constants";
 import { BankId } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { useZakat } from "@/hooks/useZakat";
 import { provider, usingDemoData } from "@/providers";
 import { useStore } from "@/store/useStore";

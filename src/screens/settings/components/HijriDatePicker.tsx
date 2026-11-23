@@ -3,7 +3,7 @@ import { addDays, format, startOfDay } from "date-fns";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import {
   fromHijri,
   HIJRI_MONTHS,

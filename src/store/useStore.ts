@@ -3,9 +3,14 @@ import * as Haptics from "expo-haptics";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { Account, Category, ChartType, Transaction } from "@/constants/types";
+import {
+  Account,
+  Category,
+  ChartType,
+  Transaction,
+  ZakatPayment,
+} from "@/constants/types";
 import { provider } from "@/providers";
-import { ZakatPayment } from "@/utils/zakat";
 
 /** A user's edit to how a transaction is shown. `icon: null` means the default initial. */
 export type Override = { category: Category; icon: string | null };

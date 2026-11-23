@@ -4,8 +4,8 @@ import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 
 import { Chip } from "@/components/Chip";
-import { useTheme } from "@/constants/theme";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { useStore } from "@/store/useStore";
 import {
   downsample,

@@ -2,8 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { GOLD_NISAB_GRAMS, Nisab, SILVER_NISAB_GRAMS } from "@/utils/zakat";
 
 type Props = { netWorth: number; nisab: Nisab; aboveNisab: boolean };

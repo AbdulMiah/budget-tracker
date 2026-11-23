@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/BottomSheet";
-import { BANK_COLORS, BANK_NAMES, useTheme } from "@/constants/theme";
+import { BANK_COLORS, BANK_NAMES } from "@/constants";
 import { Account } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   visible: boolean;

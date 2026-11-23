@@ -3,8 +3,8 @@ import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { BottomSheet } from "@/components/BottomSheet";
-import { useTheme } from "@/constants/theme";
 import { ChartType } from "@/constants/types";
+import { useTheme } from "@/hooks/useTheme";
 
 export const CHART_TYPES: {
   type: ChartType;

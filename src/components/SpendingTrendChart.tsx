@@ -2,8 +2,8 @@ import { differenceInCalendarDays, format } from "date-fns";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { useTheme } from "@/constants/theme";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { DateRange } from "@/utils/spending-periods";
 
 // Room around the plot so the line's stroke and end dot aren't clipped.

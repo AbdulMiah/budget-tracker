@@ -9,12 +9,12 @@ import { DonutRing } from "@/components/DonutRing";
 import { EyeButton } from "@/components/EyeButton";
 import { InfoTip } from "@/components/InfoTip";
 import { RecurringRow } from "@/components/RecurringRow";
-import { useTheme } from "@/constants/theme";
+import { CATEGORY_COLORS } from "@/constants";
 import { useBudgetStatus } from "@/hooks/useBudgetStatus";
 import { useMoney } from "@/hooks/useMoney";
+import { useTheme } from "@/hooks/useTheme";
 import { useStore } from "@/store/useStore";
 import { CategoryBudget } from "@/utils/budget";
-import { CATEGORY_COLORS } from "@/utils/categories";
 
 export function BudgetScreen() {
   const t = useTheme();

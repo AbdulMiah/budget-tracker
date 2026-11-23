@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 
 type Props = {
   icon: ComponentProps<typeof Ionicons>["name"];

@@ -1,19 +1,11 @@
 import { format } from "date-fns";
 
-import { Account, Transaction } from "@/constants/types";
+import { Account, Transaction, ZakatPayment } from "@/constants/types";
 import { fromHijri, HijriDate, toHijri } from "@/utils/hijri";
 
 export const ZAKAT_RATE = 0.025;
 export const GOLD_NISAB_GRAMS = 87.48;
 export const SILVER_NISAB_GRAMS = 612.36;
-
-/** A payment recorded by hand (cash, or from an account that isn't linked). Amount is positive pence. */
-export type ZakatPayment = {
-  id: string;
-  date: string;
-  amount: number;
-  note?: string;
-};
 
 /** A manual payment or a bank transaction labelled Zakat. Amount is positive pence paid. */
 export type PaymentEntry = {

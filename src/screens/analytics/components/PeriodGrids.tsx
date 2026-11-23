@@ -3,7 +3,7 @@ import { addDays, addMonths, format } from "date-fns";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { periodStart } from "@/utils/budget-period";
 
 const YEARS_PER_PAGE = 6;

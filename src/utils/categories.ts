@@ -1,22 +1,5 @@
 import { Category } from "@/constants/types";
 
-export const CATEGORY_COLORS: Record<Category, string> = {
-  Income: "#2E9E6B",
-  Rent: "#7C5CFA",
-  Bills: "#E0903A",
-  Groceries: "#4CAF50",
-  "Eating out": "#E5604D",
-  Transport: "#3D8BE0",
-  Shopping: "#D1569A",
-  Subscriptions: "#8E6BBF",
-  Entertainment: "#E0B83A",
-  Travel: "#2AB3B3",
-  Health: "#E0586E",
-  Zakat: "#14806F",
-  Transfer: "#8A94A6",
-  Other: "#8A94A6",
-};
-
 const RULES: [RegExp, Category][] = [
   [/\bzaka[th]\b|zakat foundation/i, "Zakat"],
   [/salary|payroll|wages/i, "Income"],

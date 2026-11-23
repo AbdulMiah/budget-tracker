@@ -3,8 +3,8 @@ import { useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useTheme } from "@/constants/theme";
 import { Account } from "@/constants/types";
+import { useTheme } from "@/hooks/useTheme";
 import { AccountList } from "@/screens/net-worth/components/AccountList";
 import { NetWorthCard } from "@/screens/net-worth/components/NetWorthCard";
 import { useStore } from "@/store/useStore";
