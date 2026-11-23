@@ -36,7 +36,7 @@ A mobile app cannot talk to Barclays or Lloyds directly. UK banks only expose da
 | `GET /transactions` | `Transaction[]` (`category` optional; the app fills it in) |
 | `GET /connect/:bank` | `{ "url": "..." }`, the consent page to open |
 
-Shapes are in `src/lib/types.ts`. Amounts are signed pence; dates are `yyyy-MM-dd`. Each account has a `type` of `current` or `credit` (defaults to `current` if missing); a credit card's balance is negative when money is owed.
+Shapes are in `src/constants/types.ts`. Amounts are signed pence; dates are `yyyy-MM-dd`. Each account has a `type` of `current` or `credit` (defaults to `current` if missing); a credit card's balance is negative when money is owed.
 
 Point the app at it with a `.env` file:
 
@@ -49,14 +49,18 @@ Suggested sources for the backend:
 - **Barclays and Lloyds**: an Open Banking aggregator such as TrueLayer or GoCardless Bank Account Data. Consent has to be renewed every 90 days.
 - **Wise**: either the same aggregator or a Wise personal API token.
 
-The backend must add its own authentication before it holds real data; `src/providers/remote.ts` currently sends no credentials.
+The backend must add its own authentication before it holds real data; `src/utils/api-client.ts` currently sends no credentials.
 
 ## Layout
 
 ```
-src/app/        screens (Expo Router)
+src/app/        thin route files (Expo Router)
+src/screens/    each screen and its own components
 src/components/ shared UI
-src/lib/        types, categorisation, analytics, recurring detection
-src/providers/  demo data and the backend client
-src/store/      Zustand store
+src/constants/  types, theme and app-wide constants
+src/config/     environment variables
+src/hooks/      hooks, including ones that read the providers
+src/providers/  settings Context provider
+src/services/   backend calls, demo data and TanStack Query hooks
+src/utils/      categorisation, analytics, recurring detection, zakat, API client
 ```
