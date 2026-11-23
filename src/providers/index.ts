@@ -1,6 +1,6 @@
-import { mockProvider } from "./mock";
-import { createRemoteProvider } from "./remote";
-import { BankProvider } from "./types";
+import { mockProvider } from "@/providers/mock";
+import { createRemoteProvider } from "@/providers/remote";
+import { BankProvider } from "@/providers/types";
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 

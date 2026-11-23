@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle, G } from "react-native-svg";
 
-import { useTheme } from "./theme";
+import { useTheme } from "@/constants/theme";
 
 // Space between segments, in pixels along the ring.
 const GAP = 2;

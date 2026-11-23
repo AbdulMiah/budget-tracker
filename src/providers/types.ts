@@ -1,4 +1,4 @@
-import { Account, BankId, Transaction } from "../lib/types";
+import { Account, BankId, Transaction } from "@/constants/types";
 
 export type BankData = { accounts: Account[]; transactions: Transaction[] };
 

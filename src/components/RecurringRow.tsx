@@ -8,11 +8,11 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { CATEGORY_COLORS } from "../lib/categories";
-import { RecurringPayment } from "../lib/recurring";
-import { Account } from "../lib/types";
-import { useMoney } from "../lib/useMoney";
-import { BANK_COLORS, useTheme } from "./theme";
+import { BANK_COLORS, useTheme } from "@/constants/theme";
+import { Account } from "@/constants/types";
+import { useMoney } from "@/hooks/useMoney";
+import { CATEGORY_COLORS } from "@/utils/categories";
+import { RecurringPayment } from "@/utils/recurring";
 
 type Props = {
   item: RecurringPayment;

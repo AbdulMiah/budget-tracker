@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 
-import { useTheme } from "./theme";
+import { useTheme } from "@/constants/theme";
 
 type Anchor = { x: number; y: number; width: number; height: number };
 

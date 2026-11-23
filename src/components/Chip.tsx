@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { useTheme } from "./theme";
+import { useTheme } from "@/constants/theme";
 
 type Props = {
   label: string;

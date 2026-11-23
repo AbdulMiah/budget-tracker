@@ -1,8 +1,8 @@
 import * as Linking from "expo-linking";
 
-import { categorize } from "../lib/categories";
-import { BankId } from "../lib/types";
-import { BankData, BankProvider } from "./types";
+import { BankId } from "@/constants/types";
+import { BankData, BankProvider } from "@/providers/types";
+import { categorize } from "@/utils/categories";
 
 /**
  * Talks to your own backend, which holds the open-banking / Wise credentials.

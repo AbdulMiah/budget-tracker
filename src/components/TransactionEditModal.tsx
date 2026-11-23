@@ -12,12 +12,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { CATEGORY_COLORS } from "../lib/categories";
-import { CATEGORIES, Category, Transaction } from "../lib/types";
-import { useMoney } from "../lib/useMoney";
-import { Override } from "../store/useStore";
-import { useTheme } from "./theme";
-import { IconName, TransactionAvatar } from "./TransactionRow";
+import { IconName, TransactionAvatar } from "@/components/TransactionRow";
+import { useTheme } from "@/constants/theme";
+import { CATEGORIES, Category, Transaction } from "@/constants/types";
+import { useMoney } from "@/hooks/useMoney";
+import { Override } from "@/store/useStore";
+import { CATEGORY_COLORS } from "@/utils/categories";
 
 const ICONS: IconName[] = [
   "cart",

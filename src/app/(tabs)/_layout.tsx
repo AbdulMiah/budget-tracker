@@ -1,7 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
-import { useTheme } from "../../components/theme";
+import { useTheme } from "@/constants/theme";
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 type MciName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];

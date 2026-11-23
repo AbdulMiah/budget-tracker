@@ -1,8 +1,8 @@
 import { format, startOfMonth, subMonths } from "date-fns";
 
-import { categorize } from "../lib/categories";
-import { Account, Transaction } from "../lib/types";
-import { BankData, BankProvider } from "./types";
+import { Account, Transaction } from "@/constants/types";
+import { BankData, BankProvider } from "@/providers/types";
+import { categorize } from "@/utils/categories";
 
 // Deterministic PRNG so the demo data is stable between reloads.
 function mulberry32(seed: number) {

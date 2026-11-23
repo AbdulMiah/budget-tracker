@@ -2,10 +2,10 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
-import { EyeButton } from "../components/EyeButton";
-import { useTheme } from "../components/theme";
-import { useTiltToHide } from "../lib/useTiltToHide";
-import { useStore } from "../store/useStore";
+import { EyeButton } from "@/components/EyeButton";
+import { useTheme } from "@/constants/theme";
+import { useTiltToHide } from "@/hooks/useTiltToHide";
+import { useStore } from "@/store/useStore";
 
 export default function RootLayout() {
   const t = useTheme();

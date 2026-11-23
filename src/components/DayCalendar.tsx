@@ -11,8 +11,8 @@ import {
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { DateRange } from "../lib/spendingPeriods";
-import { useTheme } from "./theme";
+import { useTheme } from "@/constants/theme";
+import { DateRange } from "@/utils/spending-periods";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

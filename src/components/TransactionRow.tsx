@@ -2,10 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { CATEGORY_COLORS } from "../lib/categories";
-import { Account, Transaction } from "../lib/types";
-import { useMoney } from "../lib/useMoney";
-import { BANK_COLORS, useTheme } from "./theme";
+import { BANK_COLORS, useTheme } from "@/constants/theme";
+import { Account, Transaction } from "@/constants/types";
+import { useMoney } from "@/hooks/useMoney";
+import { CATEGORY_COLORS } from "@/utils/categories";
 
 export type IconName = React.ComponentProps<typeof Ionicons>["name"];
 

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
 
-import { useStore } from "../store/useStore";
-import { useTheme } from "./theme";
+import { useTheme } from "@/constants/theme";
+import { useStore } from "@/store/useStore";
 
 /** Shows or hides every amount in the app. */
 export function EyeButton() {

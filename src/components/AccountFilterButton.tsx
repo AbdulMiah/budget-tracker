@@ -1,4 +1,4 @@
-import { IconButton } from "./IconButton";
+import { IconButton } from "@/components/IconButton";
 
 /** Filter icon button; turns solid with a count badge when some accounts are filtered. */
 export function AccountFilterButton({

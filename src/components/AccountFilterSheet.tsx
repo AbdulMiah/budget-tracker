@@ -2,10 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Account } from "../lib/types";
-import { useMoney } from "../lib/useMoney";
-import { BottomSheet } from "./BottomSheet";
-import { BANK_COLORS, BANK_NAMES, useTheme } from "./theme";
+import { BottomSheet } from "@/components/BottomSheet";
+import { BANK_COLORS, BANK_NAMES, useTheme } from "@/constants/theme";
+import { Account } from "@/constants/types";
+import { useMoney } from "@/hooks/useMoney";
 
 type Props = {
   visible: boolean;
