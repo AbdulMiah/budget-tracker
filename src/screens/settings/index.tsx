@@ -1,6 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ComponentProps } from "react";
 import {
   Alert,
   Pressable,
@@ -14,36 +12,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EyeButton } from "@/components/EyeButton";
 import { InfoTip } from "@/components/InfoTip";
-import { BANK_COLORS, BANK_NAMES } from "@/constants";
+import { IS_DEMO } from "@/config/env";
+import { BANK_COLORS, BANK_NAMES, BANKS, RADIUS, SPACING } from "@/constants";
 import { BankId } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
 import { useZakat } from "@/hooks/useZakat";
-import { provider, usingDemoData } from "@/providers";
-import { useStore } from "@/store/useStore";
+import { SettingsRow } from "@/screens/settings/components/SettingsRow";
+import { useAccounts } from "@/services/accounts.queries";
+import { useConnectBank } from "@/services/banks.queries";
 import { formatHijri } from "@/utils/hijri";
-
-const BANKS: BankId[] = ["barclays", "lloyds", "wise"];
 
 export function SettingsScreen() {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const {
-    accounts,
-    budgetStartDay,
-    tiltToHide,
-    setTiltToHide,
-    budgetLimit,
-    categoryBudgets,
-    load,
-  } = useStore();
+  const { data: accounts = [] } = useAccounts();
+  const { settings, update } = useSettings();
+  const { budgetStartDay, tiltToHide, budgetLimit, categoryBudgets } = settings;
+  const connectBank = useConnectBank();
   const categoryCount = Object.keys(categoryBudgets).length;
   const zakat = useZakat();
+  const cardColors = { backgroundColor: t.card, borderColor: t.border };
 
   const connect = async (bank: BankId) => {
     try {
-      await provider.connect(bank);
-      await load();
+      await connectBank.mutateAsync(bank);
     } catch (e) {
       Alert.alert(
         "Could not connect",
@@ -64,13 +58,7 @@ export function SettingsScreen() {
         </View>
 
         <Text style={[styles.section, { color: t.muted }]}>BUDGET</Text>
-        <View
-          style={[
-            styles.card,
-            styles.rows,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, styles.rows, cardColors]}>
           <SettingsRow
             icon="calendar-outline"
             title="Budget date"
@@ -97,13 +85,7 @@ export function SettingsScreen() {
         </View>
 
         <Text style={[styles.section, { color: t.muted }]}>ZAKAT</Text>
-        <View
-          style={[
-            styles.card,
-            styles.rows,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, styles.rows, cardColors]}>
           <SettingsRow
             icon="moon-outline"
             title="Zakat date and nisab"
@@ -119,16 +101,10 @@ export function SettingsScreen() {
         </View>
 
         <Text style={[styles.section, { color: t.muted }]}>PRIVACY</Text>
-        <View
-          style={[
-            styles.card,
-            styles.toggleRow,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
-          <View style={{ flex: 1, marginRight: 12 }}>
+        <View style={[styles.card, styles.toggleRow, cardColors]}>
+          <View style={styles.toggleText}>
             <View style={styles.tipRow}>
-              <Text style={{ color: t.text, fontSize: 15 }}>
+              <Text style={[styles.label, { color: t.text }]}>
                 Tilt down to hide amounts
               </Text>
               <InfoTip
@@ -139,20 +115,15 @@ export function SettingsScreen() {
           </View>
           <Switch
             value={tiltToHide}
-            onValueChange={setTiltToHide}
+            onValueChange={(on) => update({ tiltToHide: on })}
             trackColor={{ true: t.primary }}
           />
         </View>
 
         <Text style={[styles.section, { color: t.muted }]}>BANK ACCOUNTS</Text>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
-          {usingDemoData && (
-            <Text style={{ color: t.muted, fontSize: 13, marginBottom: 12 }}>
+        <View style={[styles.card, cardColors]}>
+          {IS_DEMO && (
+            <Text style={[styles.demo, { color: t.muted }]}>
               Showing demo data. Set EXPO_PUBLIC_API_URL to your backend to
               connect real accounts.
             </Text>
@@ -170,13 +141,11 @@ export function SettingsScreen() {
                     { backgroundColor: BANK_COLORS[bank] },
                   ]}
                 />
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{ color: t.text, fontSize: 16, fontWeight: "600" }}
-                  >
+                <View style={styles.bankText}>
+                  <Text style={[styles.bankName, { color: t.text }]}>
                     {BANK_NAMES[bank]}
                   </Text>
-                  <Text style={{ color: t.muted, fontSize: 13 }}>
+                  <Text style={[styles.bankAccounts, { color: t.muted }]}>
                     {linked.length
                       ? linked
                           .map((a) => `${a.name} · ${formatMoney(a.balance)}`)
@@ -184,9 +153,9 @@ export function SettingsScreen() {
                       : "Not connected"}
                   </Text>
                 </View>
-                {!linked.length || !usingDemoData ? (
+                {!linked.length || !IS_DEMO ? (
                   <Pressable onPress={() => connect(bank)} hitSlop={8}>
-                    <Text style={{ color: t.primary, fontWeight: "600" }}>
+                    <Text style={[styles.connect, { color: t.primary }]}>
                       {linked.length ? "Reconnect" : "Connect"}
                     </Text>
                   </Pressable>
@@ -200,85 +169,49 @@ export function SettingsScreen() {
   );
 }
 
-/** A settings entry that opens its own page, showing the current value under the title. */
-function SettingsRow({
-  icon,
-  title,
-  value,
-  onPress,
-}: {
-  icon: ComponentProps<typeof Ionicons>["name"];
-  title: string;
-  value: string;
-  onPress: () => void;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}, ${value}`}
-      style={({ pressed }) => [
-        styles.settingsRow,
-        { opacity: pressed ? 0.6 : 1 },
-      ]}
-    >
-      <View style={[styles.rowIcon, { backgroundColor: t.primary + "1f" }]}>
-        <Ionicons name={icon} size={18} color={t.primary} />
-      </View>
-      <View style={{ flex: 1, marginHorizontal: 12 }}>
-        <Text style={{ color: t.text, fontSize: 16 }}>{title}</Text>
-        <Text
-          style={{ color: t.muted, fontSize: 13, marginTop: 2 }}
-          numberOfLines={1}
-        >
-          {value}
-        </Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={t.muted} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32 },
+  content: { padding: SPACING.four, paddingBottom: SPACING.six },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  h1: { fontSize: 30, fontWeight: "800", marginBottom: 12 },
+  h1: { fontSize: 30, fontWeight: "800", marginBottom: SPACING.three },
   section: {
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.8,
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: SPACING.two,
+    marginBottom: SPACING.two,
   },
-  card: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
-  rows: { paddingVertical: 4, paddingHorizontal: 0 },
-  settingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  card: {
+    padding: SPACING.four,
+    borderRadius: RADIUS.large,
+    borderWidth: 1,
+    marginBottom: SPACING.four,
   },
-  rowIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  rows: { paddingVertical: SPACING.one, paddingHorizontal: 0 },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 60 },
   toggleRow: { flexDirection: "row", alignItems: "center" },
+  toggleText: { flex: 1, marginRight: SPACING.three },
   tipRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  label: { fontSize: 15 },
+  demo: { fontSize: 13, marginBottom: SPACING.three },
   bankRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: SPACING.three,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  bankDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
+  bankDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: SPACING.three,
+  },
+  bankText: { flex: 1 },
+  bankName: { fontSize: 16, fontWeight: "600" },
+  bankAccounts: { fontSize: 13 },
+  connect: { fontWeight: "600" },
 });

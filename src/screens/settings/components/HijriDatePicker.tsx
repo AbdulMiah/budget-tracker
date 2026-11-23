@@ -3,6 +3,7 @@ import { addDays, format, startOfDay } from "date-fns";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { WHITE } from "@/constants";
 import { useTheme } from "@/hooks/useTheme";
 import {
   fromHijri,
@@ -49,14 +50,12 @@ export function HijriDatePicker({ value, maxDate, onChange }: Props) {
         >
           <Ionicons name="chevron-back" size={22} color={t.text} />
         </Pressable>
-        <Text style={{ color: t.text, fontSize: 16, fontWeight: "700" }}>
-          {year} AH
-        </Text>
+        <Text style={[styles.year, { color: t.text }]}>{year} AH</Text>
         <Pressable
           onPress={() => year < maxHijri.year && setYear(year + 1)}
           hitSlop={12}
           accessibilityLabel="Next year"
-          style={{ opacity: year < maxHijri.year ? 1 : 0.3 }}
+          style={year >= maxHijri.year && styles.arrowDisabled}
         >
           <Ionicons name="chevron-forward" size={22} color={t.text} />
         </Pressable>
@@ -81,15 +80,11 @@ export function HijriDatePicker({ value, maxDate, onChange }: Props) {
                   backgroundColor: active ? t.primary : t.card,
                   borderColor: active ? t.primary : t.border,
                 },
-                disabled && { opacity: 0.35 },
+                disabled && styles.monthDisabled,
               ]}
             >
               <Text
-                style={{
-                  color: active ? "#fff" : t.text,
-                  fontSize: 13,
-                  fontWeight: "600",
-                }}
+                style={[styles.monthText, { color: active ? WHITE : t.text }]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
               >
@@ -122,11 +117,11 @@ export function HijriDatePicker({ value, maxDate, onChange }: Props) {
                   backgroundColor: active ? t.primary : "transparent",
                   borderColor: active ? t.primary : t.border,
                 },
-                disabled && { opacity: 0.3 },
+                disabled && styles.dayDisabled,
               ]}
             >
               <Text
-                style={{ color: active ? "#fff" : t.text, fontWeight: "600" }}
+                style={[styles.dayText, { color: active ? WHITE : t.text }]}
               >
                 {d}
               </Text>
@@ -151,6 +146,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 12,
   },
+  year: { fontSize: 16, fontWeight: "700" },
+  arrowDisabled: { opacity: 0.3 },
   months: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   month: {
     width: "31.5%",
@@ -160,6 +157,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
   },
+  monthDisabled: { opacity: 0.35 },
+  monthText: { fontSize: 13, fontWeight: "600" },
   monthTitle: {
     fontSize: 12,
     fontWeight: "700",
@@ -176,5 +175,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  dayDisabled: { opacity: 0.3 },
+  dayText: { fontWeight: "600" },
   footer: { textAlign: "center", fontSize: 13, marginTop: 14 },
 });

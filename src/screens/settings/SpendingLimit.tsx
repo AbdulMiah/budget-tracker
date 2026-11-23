@@ -6,14 +6,16 @@ import { SectionTitle } from "@/components/SectionTitle";
 import { CATEGORY_COLORS } from "@/constants";
 import { SPENDING_CATEGORIES } from "@/constants/types";
 import { useMoney } from "@/hooks/useMoney";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
+import { withEntry } from "@/utils/helpers";
 
 export function SpendingLimitScreen() {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const { budgetLimit, setBudgetLimit, categoryBudgets, setCategoryBudget } =
-    useStore();
+  const { settings, update } = useSettings();
+  const { budgetLimit, categoryBudgets } = settings;
+  const cardColors = { backgroundColor: t.card, borderColor: t.border };
   const allocated = Object.values(categoryBudgets).reduce(
     (sum, v) => sum + (v ?? 0),
     0
@@ -41,15 +43,10 @@ export function SpendingLimitScreen() {
           title="Monthly limit"
           info="The most you want to spend each budget month, including bills and subscriptions. Leave it empty to turn budgeting off."
         />
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, cardColors]}>
           <MoneyInput
             value={budgetLimit}
-            onChange={setBudgetLimit}
+            onChange={(pence) => update({ budgetLimit: pence })}
             placeholder="e.g. 2000"
             accessibilityLabel="Monthly spending limit"
           />
@@ -58,12 +55,7 @@ export function SpendingLimitScreen() {
         {budgetLimit !== null && (
           <>
             <Text style={[styles.section, { color: t.muted }]}>ALLOCATED</Text>
-            <View
-              style={[
-                styles.card,
-                { backgroundColor: t.card, borderColor: t.border },
-              ]}
-            >
+            <View style={[styles.card, cardColors]}>
               <View style={styles.allocatedTop}>
                 <Text
                   style={[styles.percent, { color: over ? t.spend : t.text }]}
@@ -71,11 +63,7 @@ export function SpendingLimitScreen() {
                   {percent}%
                 </Text>
                 <Text
-                  style={{
-                    color: over ? t.spend : t.muted,
-                    fontSize: 13,
-                    fontWeight: "600",
-                  }}
+                  style={[styles.left, { color: over ? t.spend : t.muted }]}
                 >
                   {over
                     ? `${formatMoney(-unallocated)} over`
@@ -94,7 +82,7 @@ export function SpendingLimitScreen() {
                   />
                 ))}
               </View>
-              <Text style={{ color: t.muted, fontSize: 12, marginTop: 8 }}>
+              <Text style={[styles.total, { color: t.muted }]}>
                 {formatMoney(allocated)} of {formatMoney(budgetLimit)}
               </Text>
             </View>
@@ -105,12 +93,7 @@ export function SpendingLimitScreen() {
           title="Split by category"
           info="Optional. Set aside part of your limit for the categories you want to keep an eye on."
         />
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, cardColors]}>
           {SPENDING_CATEGORIES.map((c) => (
             <View
               key={c}
@@ -119,11 +102,15 @@ export function SpendingLimitScreen() {
               <View
                 style={[styles.dot, { backgroundColor: CATEGORY_COLORS[c] }]}
               />
-              <Text style={{ color: t.text, fontSize: 15, flex: 1 }}>{c}</Text>
-              <View style={{ width: 120 }}>
+              <Text style={[styles.category, { color: t.text }]}>{c}</Text>
+              <View style={styles.input}>
                 <MoneyInput
                   value={categoryBudgets[c] ?? null}
-                  onChange={(pence) => setCategoryBudget(c, pence)}
+                  onChange={(pence) =>
+                    update((s) => ({
+                      categoryBudgets: withEntry(s.categoryBudgets, c, pence),
+                    }))
+                  }
                   placeholder="—"
                   accessibilityLabel={`${c} budget`}
                 />
@@ -154,6 +141,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   percent: { fontSize: 28, fontWeight: "800" },
+  left: { fontSize: 13, fontWeight: "600" },
+  total: { fontSize: 12, marginTop: 8 },
   track: {
     flexDirection: "row",
     height: 8,
@@ -166,5 +155,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
+  category: { flex: 1, fontSize: 15 },
+  input: { width: 120 },
   dot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
 });

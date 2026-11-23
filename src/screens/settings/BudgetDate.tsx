@@ -3,19 +3,18 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { InfoTip } from "@/components/InfoTip";
-import { BUDGET_START_DAY_RANGE } from "@/constants";
+import { BUDGET_START_DAY_RANGE, WHITE } from "@/constants";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
-import { useStore } from "@/store/useStore";
 import { periodEnd, periodStart } from "@/utils/budget-period";
 
 export function BudgetDateScreen() {
   const t = useTheme();
-  const { budgetStartDay, setBudgetStartDay } = useStore();
+  const { settings, update } = useSettings();
+  const { budgetStartDay } = settings;
   const start = periodStart(new Date(), budgetStartDay);
-  const days = Array.from(
-    { length: BUDGET_START_DAY_RANGE.max },
-    (_, i) => i + 1
-  );
+  const { min, max } = BUDGET_START_DAY_RANGE;
+  const days = Array.from({ length: max - min + 1 }, (_, i) => min + i);
 
   return (
     <SafeAreaView
@@ -30,7 +29,7 @@ export function BudgetDateScreen() {
           ]}
         >
           <View style={styles.titleRow}>
-            <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>
+            <Text style={[styles.title, { color: t.text }]}>
               My budget month starts on day {budgetStartDay}
             </Text>
             <InfoTip
@@ -38,7 +37,7 @@ export function BudgetDateScreen() {
               text="Set this to your payday so each month's budget lines up with your salary."
             />
           </View>
-          <Text style={{ color: t.muted, fontSize: 13, marginBottom: 14 }}>
+          <Text style={[styles.period, { color: t.muted }]}>
             Current period: {format(start, "d MMM")} –{" "}
             {format(periodEnd(start), "d MMM yyyy")}
           </Text>
@@ -48,7 +47,7 @@ export function BudgetDateScreen() {
               return (
                 <Pressable
                   key={d}
-                  onPress={() => setBudgetStartDay(d)}
+                  onPress={() => update({ budgetStartDay: d })}
                   accessibilityRole="button"
                   accessibilityLabel={`Day ${d}`}
                   accessibilityState={{ selected: active }}
@@ -61,10 +60,7 @@ export function BudgetDateScreen() {
                   ]}
                 >
                   <Text
-                    style={{
-                      color: active ? "#fff" : t.text,
-                      fontWeight: "600",
-                    }}
+                    style={[styles.dayText, { color: active ? WHITE : t.text }]}
                   >
                     {d}
                   </Text>
@@ -88,6 +84,8 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4,
   },
+  title: { fontSize: 15, fontWeight: "600" },
+  period: { fontSize: 13, marginBottom: 14 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   day: {
     width: 42,
@@ -97,4 +95,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  dayText: { fontWeight: "600" },
 });

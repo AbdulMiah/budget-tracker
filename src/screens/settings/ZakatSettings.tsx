@@ -9,13 +9,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MoneyInput } from "@/components/MoneyInput";
 import { SectionTitle } from "@/components/SectionTitle";
 import { useMoney } from "@/hooks/useMoney";
+import { useSettings } from "@/hooks/useSettings";
 import { useTheme } from "@/hooks/useTheme";
 import { useZakat } from "@/hooks/useZakat";
 import { HijriDatePicker } from "@/screens/settings/components/HijriDatePicker";
-import { useStore } from "@/store/useStore";
+import { PriceRow } from "@/screens/settings/components/PriceRow";
 import {
   formatHijri,
   fromHijri,
@@ -27,14 +27,9 @@ import { GOLD_NISAB_GRAMS, SILVER_NISAB_GRAMS } from "@/utils/zakat";
 export function ZakatSettingsScreen() {
   const t = useTheme();
   const { formatMoney } = useMoney();
-  const {
-    zakatStart,
-    setZakatStart,
-    goldPrice,
-    setGoldPrice,
-    silverPrice,
-    setSilverPrice,
-  } = useStore();
+  const { settings, update } = useSettings();
+  const { zakatStart, goldPrice, silverPrice } = settings;
+  const cardColors = { backgroundColor: t.card, borderColor: t.border };
   const { nisab, aboveNisab, current } = useZakat();
   const today = startOfDay(new Date());
   const start = zakatStart ? toHijri(parseISO(zakatStart)) : null;
@@ -51,7 +46,7 @@ export function ZakatSettingsScreen() {
         {
           text: "Stop",
           style: "destructive",
-          onPress: () => setZakatStart(null),
+          onPress: () => update({ zakatStart: null }),
         },
       ]
     );
@@ -70,22 +65,17 @@ export function ZakatSettingsScreen() {
           title="Gold and silver prices"
           info={`Today's price per gram in pounds. Nisab is the value of ${GOLD_NISAB_GRAMS}g of gold or ${SILVER_NISAB_GRAMS}g of silver; reaching either is enough.`}
         />
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, cardColors]}>
           <PriceRow
             label="Gold"
             value={goldPrice}
-            onChange={setGoldPrice}
+            onChange={(pence) => update({ goldPrice: pence })}
             nisab={nisab.gold === null ? null : formatMoney(nisab.gold)}
           />
           <PriceRow
             label="Silver"
             value={silverPrice}
-            onChange={setSilverPrice}
+            onChange={(pence) => update({ silverPrice: pence })}
             nisab={nisab.silver === null ? null : formatMoney(nisab.silver)}
           />
         </View>
@@ -94,21 +84,9 @@ export function ZakatSettingsScreen() {
           title="Zakat date"
           info={`The day your wealth first reached nisab. Zakat falls due on this date every lunar year. Pick an earlier date to track previous years too.\n\nDates use the ${hijriCalendarName} calendar, which can differ by a day or so from local moon sighting.`}
         />
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: t.card, borderColor: t.border },
-          ]}
-        >
+        <View style={[styles.card, cardColors]}>
           {start && current && (
-            <Text
-              style={{
-                color: t.text,
-                fontSize: 15,
-                fontWeight: "600",
-                marginBottom: 14,
-              }}
-            >
+            <Text style={[styles.started, { color: t.text }]}>
               Started {formatHijri(start)}. Next due{" "}
               {formatHijri(current.dueHijri)} (
               {format(current.due, "d MMM yyyy")}).
@@ -119,11 +97,11 @@ export function ZakatSettingsScreen() {
               value={start}
               maxDate={today}
               onChange={(h) =>
-                setZakatStart(format(fromHijri(h), "yyyy-MM-dd"))
+                update({ zakatStart: format(fromHijri(h), "yyyy-MM-dd") })
               }
             />
           ) : (
-            <Text style={{ color: t.text, fontSize: 14 }}>
+            <Text style={[styles.message, { color: t.text }]}>
               {nisab.threshold === null
                 ? "Add a gold or silver price above first, so your wealth can be checked against nisab."
                 : "Your net worth is below nisab, so zakat is not fardh on you yet."}
@@ -135,13 +113,9 @@ export function ZakatSettingsScreen() {
           <Pressable
             onPress={stopTracking}
             accessibilityRole="button"
-            style={[
-              styles.card,
-              styles.stop,
-              { backgroundColor: t.card, borderColor: t.border },
-            ]}
+            style={[styles.card, styles.stop, cardColors]}
           >
-            <Text style={{ color: t.spend, fontSize: 16, fontWeight: "600" }}>
+            <Text style={[styles.stopText, { color: t.spend }]}>
               Stop tracking zakat
             </Text>
           </Pressable>
@@ -151,47 +125,12 @@ export function ZakatSettingsScreen() {
   );
 }
 
-function PriceRow({
-  label,
-  value,
-  onChange,
-  nisab,
-}: {
-  label: string;
-  value: number | null;
-  onChange: (pence: number | null) => void;
-  nisab: string | null;
-}) {
-  const t = useTheme();
-  return (
-    <View style={[styles.priceRow, { borderTopColor: t.border }]}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: t.text, fontSize: 15 }}>{label}</Text>
-        <Text style={{ color: t.muted, fontSize: 12, marginTop: 2 }}>
-          {nisab ? `Nisab ${nisab}` : "Per gram"}
-        </Text>
-      </View>
-      <View style={{ width: 120 }}>
-        <MoneyInput
-          value={value}
-          onChange={onChange}
-          placeholder="per gram"
-          accessibilityLabel={`${label} price per gram`}
-        />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { padding: 16, paddingBottom: 32 },
   card: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
+  started: { fontSize: 15, fontWeight: "600", marginBottom: 14 },
+  message: { fontSize: 14 },
   stop: { alignItems: "center", paddingVertical: 14 },
+  stopText: { fontSize: 16, fontWeight: "600" },
 });
